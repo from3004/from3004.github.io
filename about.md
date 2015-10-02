@@ -5,6 +5,7 @@ permalink: /about/
 ---
 
 Kaya Stechly
+
 Currently an intern at the [Machine Intelligence Research Institute](intelligence.org).
 
 ### Contact me
