@@ -1,0 +1,3569 @@
+%XXX insert a bunch of citations
+
+\documentclass[12pt]{article}
+
+\usepackage[dvips]{graphics,color}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{etex,etoolbox}
+\usepackage{environ}
+\usepackage{amsthm}
+\usepackage{hyperref}
+\usepackage{latexsym}
+\usepackage{enumitem}
+\usepackage{multicol}
+\usepackage[ruled, vlined]{algorithm2e}
+\setlength{\parskip}{1pc}
+\setlength{\parindent}{0pt}
+\setlength{\topmargin}{-3pc}
+\setlength{\textheight}{9.5in}
+\setlength{\oddsidemargin}{0pc}
+\setlength{\evensidemargin}{0pc}
+\setlength{\textwidth}{6.5in}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{claim}{Claim}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+
+% Magic appendices!
+% \later{...} delays ... to be included later (e.g. use for proofs)
+% \both{...} puts ... here and also delays it for later
+%   (e.g. use for theorems you want restated before proofs)
+% \magicappendix spits out all the delayed text in sequence.
+% \both automatically saves the theorem counter in case of repeated theorems,
+% but you need to modify it to save any more counters you want (see below).
+% You can use \iflater ... \else ... \fi to do different things in the
+% two uses of a \both argument.
+\newtoks\magicAppendix
+\magicAppendix={}
+\newtoks\magictoks
+\newif\iflater
+\laterfalse
+\long\def\later#1{\magictoks={#1}%
+  \edef\magictodo{\noexpand\magicAppendix={\the\magicAppendix \par
+    \noexpand\setcounter{theorem}{\arabic{theorem}}%
+    % repeat the above line for all counters you want to preserve (lemma, etc.)
+    \the\magictoks}}%
+  \magictodo}
+\long\def\both#1{\later{#1}\the\magictoks}
+\def\magicappendix{\latertrue \the\magicAppendix}
+
+
+\DeclareMathOperator{\True}{True}
+\newbox\gnBoxA
+\newdimen\gnCornerHgt
+\setbox\gnBoxA=\hbox{$\ulcorner$}
+\global\gnCornerHgt=\ht\gnBoxA
+\newdimen\gnArgHgt
+\def\q #1{%
+\setbox\gnBoxA=\hbox{$#1$}%
+\gnArgHgt=\ht\gnBoxA%
+\ifnum     \gnArgHgt<\gnCornerHgt \gnArgHgt=0pt%
+\else \advance \gnArgHgt by -\gnCornerHgt%
+\fi \raise\gnArgHgt\hbox{$\ulcorner$} \box\gnBoxA %
+\raise\gnArgHgt\hbox{$\urcorner$}}
+\newcommand{\ltwod}[2]{\left\|#1 - #2\right\|_2^2}
+\newcommand{\sPQ}{\ltwod{\PP}{\QQ}}
+\newcommand{\Hc}[2]{H\ofc{#1}{#2}}
+\newcommand{\argmin}{\operatornamewithlimits{argmin}}
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+\newcommand{\tr}[1]{\text{tr}\of{#1}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\Q}[1]{\QQ\of{#1}}
+\renewcommand{\O}{\mathcal{O}}
+\newcommand{\Of}[1]{\O\of{#1}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\Rf}[1]{\R\of{#1}}
+\newcommand{\Godel}{G\"{o}del }
+\newcommand{\of}[1]{\left(#1\right)}
+\renewcommand{\b}[1]{\left\{#1\right\}}
+\newcommand{\bc}[2]{\left\{#1\left|#2\right.\right\}}
+\newcommand{\ofc}[2]{\left(#1\;\middle\vert\;#2\right)}
+\newcommand{\ofcc}[2]{\left(#1\middle\| #2\right)}
+\newcommand{\Pow}[1]{\mathcal{P}\of{#1}}
+\newcommand{\comp}[2]{\left\{ #1 \; \middle\vert \; #2\right\}}
+\newcommand{\st}{\; : \;}
+\newcommand{\T}{T}
+\renewcommand{\Tq}[1]{\True\left(\q{#1}\right)}
+\newcommand{\Con}[1]{\text{Con}\of{#1}}
+\newcommand{\To}[1]{\True\left(#1\right)}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\PA}{\text{PA}}
+\newcommand{\Pc}[2]{\PP\ofc{#1}{#2}}
+\newcommand{\Qc}[2]{\QQ\ofc{#1}{#2}}
+\newcommand{\muv}{\mu\of{\vp}}
+\newcommand{\RQ}{\text{Q}}
+\delimitershortfall-1sp
+\renewcommand{\P}[1]{\mathbb{P}\of{#1}}
+\renewcommand{\iff}{\leftrightarrow}
+\newcommand{\E}[1]{\mathbb{E}\left[#1\right]}
+\newcommand{\Ec}[2]{\mathbb{E}\left[#1\middle\vert #2\right]}
+\newcommand{\EE}{\mathbb{E}}
+\newcommand{\Po}[1]{\mathbb{P}\of{#1}}
+\newcommand{\Pq}[1]{\mathbb{P}\of{\q{#1}}}
+\newcommand{\Pqc}[2]{\Pc{\q{#1}}{\q{#2}}}
+\newcommand{\vp}{\varphi}
+\newcommand{\qvp}{\q{\vp}}
+\newcommand{\con}[1]{\text{Con}\of{#1}}
+\newcommand{\abs}[1]{\left\vert#1\right\vert}
+\newcommand{\eps}{\epsilon}
+\newcommand{\reg}[1]{\Psi\of{#1}}
+\newcommand{\regs}[1]{\Psi_S\of{#1}}
+\newcommand{\regpre}[1]{\Psi_0\of{#1}}
+\newcommand{\relreg}[2]{\Psi\ofcc{#1}{#2}}
+\renewcommand{\d}[2]{\frac {\partial}{\partial #1} #2}
+
+\begin{document}
+
+\title{Non-Omniscience, Probabilistic Inference, and Metamathematics}
+\author{
+Paul Christiano\thanks{UC Berkeley. This work originated at a workshop organized by the Machine Intelligence Research Institute.\ Email: paulfchristiano@eecs.berkeley.edu}
+}
+\maketitle
+
+%XXX references to insert
+%Paper by garber?
+%http://www.pfeifer-research.de/progic/walsh-sean-EPK-progic-paper.pdf
+
+\begin{abstract}
+We suggest a tractable algorithm for assigning probabilities
+to sentences of first-order logic and updating those probabilities
+on the basis of observations.
+The core technical difficulty is relaxing the constraints
+of logical consistency in a way that is appropriate for bounded reasoners,
+without sacrificing the ability to make useful logical inferences
+or update correctly on evidence.
+
+Using this framework, we discuss formalizations of some
+issues in the epistemology of mathematics.
+We show how mathematical theories can be understood as latent structure
+constraining physical observations, and consequently how realistic
+observations can provide evidence about abstract mathematical facts.
+We also discuss the relevance of these ideas to general intelligence.
+\end{abstract}
+
+\tableofcontents
+\section{Introduction}
+
+\subsection{Motivation}
+
+Probability theory provides a powerful framework
+for reasoning under uncertainty, 
+and many aspects of human cognition can be understood
+as probabilistic reasoning.
+Unfortunately, the simplest models tend to be general but computationally intractable,
+while practically relevant algorithms tend to rely on ideas which are 
+ad hoc and more narrowly applicable.
+
+One challenge in bridging the gap between theoretically simple
+models and practically relevant algorithms is coping
+with \emph{logical uncertainty}:
+any realistic agent is necessarily uncertain not only about its
+environment or about the future, 
+but also about the logically necessary consequences of its beliefs.
+An agent might suspect that a particular physical theory is correct,
+yet be uncertain about the predictions of that theory until it
+performs some computation.
+To date there have been few conceptually clean proposals for algorithms
+which handle such uncertainty in a general and principled way.
+
+Related to this is the rich structure of human deductive reasoning,
+which appears to play a central role in intellectual activity
+yet is typically either trivialized by or omitted from probabilistic accounts
+of general cognition.
+
+In this work we provide simple, general, and potentially tractable
+algorithms for reasoning in the presence
+of logical uncertainty.
+These algorithms are probabilistic,
+not because the environment is uncertain (though this may also be true)
+but because confidence about logical propositions imposes unrealistic
+computational demands.
+
+In addition to its potential algorithmic relevance,
+having a concrete yet general model of bounded reasoning
+provides a setting for considering a wide range
+of epistemological problems formally.
+We will pay particular attention to
+the epistemology of mathematics, and to
+the relationship between abstract mathematical knowledge
+and reasoning about concrete finite objects.
+
+\subsubsection{Metamathematics}
+
+Within the formal practice of mathematics, 
+axioms are typically taken for granted
+and their consequences are explored.
+\emph{Outside} of formal mathematics,
+mathematicians reason about those consequences and come
+to judgments about which axiom systems are reasonable, useful, or ``true.''
+Metamathematics has had considerable success in describing
+the formal process of mathematics (though many of its most
+impressive results have been limitative),
+but has largely stayed away from the ``extra-formal'' process
+by which mathematicians decide what axioms they ought to accept.
+
+In this paper we 
+consider Bayesian prior over 
+``mathematical states of affairs,''
+and view observations about the world as providing
+Bayesian evidence about underlying mathematical facts.
+For example, if we observe the behavior of a calculator
+we may infer the laws of arithmetic as an explanation for its behavior.
+Having made that inference, we can use deduction
+to infer that if we enter ``3 + 4 - 3'' we will see ``4.''
+But now the process can also be turned on its head:
+when we type ``134 * 345'' and see ``46230,''
+we can make inferences about the \emph{mathematical} state of affairs
+underlying reality.
+
+When we observe
+a few values of a function $f(0), f(1), \ldots$
+we can make inductive generalizations about the behavior of $f$.
+After inferring many generalizations
+we can begin to make generalizations about generalizations,
+and come to have well-grounded beliefs
+about mathematical abstractions.
+
+\subsubsection{Bounded universal intelligence}\label{universal-intelligence}
+%XXX this, and maybe the preceding section, should move a bit
+
+There has been some recent interest in the idea of ``universal'' intelligence,
+i.e. single algorithms which yield adequate or optimal behavior
+in a wide variety of situations.
+For example, see \cite{aixi, godel-machine}.
+This work tends to bear little resemblance to practical work in AI
+or learning theory.
+One reason for this divergence is that existing proposals for universal
+intelligence tend to rest on
+on exhaustive searches over possible policies or explanations.
+The ``finite'' analogs that have been considered additionally
+rely on mathematical proof as a basis for judgments.
+
+The algorithms we present here can be used as a basis for universal
+intelligence (see the discussion in section~\ref{interaction});
+though there is still a substantial gap between our techniques
+and directly practical algorithms,
+our work much more closely resembles practical techniques for learning than
+the brute force search that has characterized past efforts.
+
+Moreover, past approaches to bounded universal intelligence
+have relied on the use of mathematical proofs of optimality
+as a guide for decision-making.
+These strike us as highly unsatisfactory:
+most empirically successful policies cannot be supported by proofs
+of good performance, and it is far from clear
+whether any policies even \emph{have} provable bounds on performance
+which would be satisfactory\footnote{Ironically,
+proof-based techniques themselves typically fall into this category,
+and so such proposals for universal intelligence
+are ``optimal'' only when compared
+to a class of agents which is too narrow to include themselves:
+\begin{enumerate}
+\item The validity of proofs in a particular system
+cannot be verified by any proof within that system.
+In practice, the soundness of human reasoning
+is accepted by humans either on the basis of inductive
+reasoning
+or (though it seems less likely to the author) on the basis of some 
+as-yet poorly understood human capacity.
+\item Even accepting that a theory $T$ is sound,
+it appears to be essentially impossible to \emph{provably} lower-bound the performance
+of an agent which takes an action only if it provably
+has good consequences.
+\end{enumerate}
+}. In light of this, it seems unlikely that such proof-based
+approaches can properly be considered universal intelligence
+(even setting aside computational issues).
+
+An agent which makes decisions on the basis of probabilistic judgments
+can pursue the action which they believe to be best,
+regardless of how complex the situation is.
+Such agents are never ``stuck'' doing nothing because they cannot
+find a proof of any action-relevant statements.
+
+\subsection{Guide to the paper}
+
+%XXX maybe have more discussion of each section here
+
+The remainder of Section 1 briefly discusses related work,
+and makes some notes on the relationship between efficiency
+and computability.
+
+In Section~\ref{coherence} we develop some logical preliminaries,
+and lay out notions of logical coherence which are suitable for bounded
+reasoners. 
+
+In Section~\ref{priors} we provide an explicit construction of a coherent
+prior distribution which reflects a condition of ignorance.
+
+In Section~\ref{math} we describe some examples
+of mathematical reasoning within our framework.
+
+In Section~\ref{interaction} we describe how this prior
+can be extended and incorporated into a general system
+for goal-oriented behavior. 
+
+In Section~\ref{conclusion} we point to some open problems
+suggested by the formalism developed here,
+and discuss the implications of this work.
+
+\subsection{Related work}
+
+The problem of logical non-omniscience
+has been considered at some length in formal epistemology;
+a central question in this area is under what conditions
+we might say that a reasoner's beliefs are consistent
+with the evidence they have received,
+when the reasoner is not able to deduce all of the logical
+consequences of statements which they believe.
+Several notions have been proposed,
+some of which, particularly \cite{gaifman04},
+are quite similar to our own.
+Our motivation is more algorithmic than philosophical,
+and our further contributions are to provide
+notions of coherence that are plausibly suitable for efficient
+reasoning, to examine the construction of priors under
+our coherence conditions,
+and to consider the application of the resulting systems
+to mathematical reasoning and to goal-oriented behavior more generally.
+
+The problem of assigning prior probabilities to logical sentences has also received
+some recent attention \cite{demski12, hutter-prior}.
+Our work differs primarily by offering constructions which are in closer
+concordance with existing techniques,
+and which are more appropriate for use by bounded reasoners.
+We also take more interest in the application of these systems
+to understanding mathematical reasoning (in this section
+we could just as well substitute our proposed algorithms for finite
+approximations to those of Hutter or Demski), and to goal-oriented behavior
+(in this section we make more use of the distinctive properties of our proposal).
+
+There is a massive literature on practical probabilistic reasoning.
+This work typically considers the problem of constructing
+practically useful models and on finding algorithmic approaches
+to reasoning about models in which exact inference is intractable.
+We suspect that, properly understood, mathematical reasoning provides
+a rich source of challenges for researchers working on approximate inference.
+Our goal is to help fortify this connection by providing a formal
+model of the problem and an example of how algorithmic techniques
+might be applied.
+
+Some philosophers working on mathematical epistemology
+have considered more explicitly the interaction between probabilistic
+reasoning and mathematical reasoning. %XXX cite a few of these
+We hope to contribute to this research program by providing
+clearer formal models for probabilistic reasoning about mathematics,
+which allow us to arbitrate between conflicting intuitions
+and to focus our attention on those aspects of mathematical reasoning
+which currently elude our formal models.
+
+Finally, as alluded to in section~\ref{universal-intelligence},
+there has been a small amount of research on algorithms
+which can reproduce intelligent behavior (at least in theory)
+in as broad a range of domains as possible\cite{godel-machine, aixi}.
+In some sense our work can be seen as a continuation of this program,
+and an effort to design more realistic and efficient
+algorithms for universal intelligence.
+Our work differs from existing research by providing an
+explicit account of probabilistic reasoning given bounded
+resources, which seems likely to be a key ingredient
+in any approach to general intelligence.
+
+\subsection{Efficient, finite, and infinite}
+
+Throughout this paper we will consider three domains:
+learners which are \emph{efficient}, learners which
+are computable but not necessarily efficient,
+and learners which make use of a halting oracle.
+We imagine each type of algorithm as observing and interacting with a world
+which is somewhat more complicated than itself:
+the finite learners interact with an environment
+which is finite but more computationally complex than they are,
+while the infinite learner interacts with
+an environment that is even more infinite than it (either by
+making more calls to the halting oracle, or by
+lying even farther up the arithmetical hierarchy).
+
+As we move from infinite to finite to efficient algorithms,
+we are able to enforce weaker and weaker consistency
+conditions on the probability distributions we maintain.
+Each step seems to present significant additional difficulties,
+and so in general we will first present an idea in the context
+of an infinite learner and only later show how to scale it down
+to a finite or efficient learner.
+
+Crudely speaking, we might see the infinite domain
+as analogous to traditional metamathematics or to recursion theory,
+while the efficient domain is analogous to proof complexity or 
+computational complexity.
+Though the latter domains share much of the technical machinery
+from the former, the situation has proven to be qualitatively more complex.
+
+The \emph{role} of mathematical reasoning in the case of finite
+versus infinite reasoning is also conceptually different.
+The infinite agents we consider know all first-order consequences
+of anything they know---i.e., if $\vp \vdash \psi$ and they believe $\vp$,
+then they believe $\psi$.
+For them, the difficulty is that they are interested in infinite statements
+whose truth is not pinned down by any enumerable list of axioms,
+and they reason about the truth of stronger mathematical theories as an explanation
+for these complex statements.
+
+The finite agents we consider are interested in strictly finite statements
+about the world.
+So in principle they may be able to infer everything they care about
+from a very short list of axioms---they have no intrinsic
+interest in statements like $\forall x : \vp\of{x}$.
+But this inference might take an extremely long time.
+For these finite agents, the machinery of logic is useful as a
+\emph{computational expedient}.
+(A similar situation obtains in the field of proof complexity,
+where in some sense cut-elimination and Herbrand's theorem
+show that the use of quantifiers is extraneous.
+Quantifiers still play an important role, however,
+in controlling the complexity of a proof.
+Our situation is similar in spirit though technically quite different.)
+
+The importance and non-trivial structure of mathematical reasoning 
+do not appear to be unique to
+any of these domains (finite, infinite, and efficient).
+Rather, it is characteristic of situations in which a learner's
+environment is \emph{more computationally powerful} than the learner itself.
+We suggest that building any agent which successfully reasons
+about an environment more complex than itself 
+is a useful ``first step'' for a formal account
+of epistemology or universal intelligence.
+
+%\begin{enumerate}
+%\item \emph{The finite:} Ultimately, we are concerned with bounded reasoners living in a finite world.
+%In principle such agents have no intrinsic use for statements like $\forall x : \vp\of{x}$,
+%they care only about what happens in some finite time horizon;
+%given infinite time they could deduce all facts they cared about
+%without ever using induction or appealing to the existence of infinities.
+%For them, mathematics' only practical relevance is as a \emph{computational} aid.
+%A bounded agent may inhabit a world which is considerably more complex than they are.
+%And so while in principle it may be possible to derive all of the true facts about their world
+%by brute force,
+%computational limitations rule out the prospect, and they may need to rely on more powerful
+%mathematical systems to derive meaningful facts in a realistic amount of time.
+%
+%In the setting of bounded reasoners we also cannot exploit the full power of deductive inference;
+%following Gaifman \cite{gaifman04}, we introduce the notion of local coherence of beliefs
+%to model this situation.
+%We show that many of the nice characteristics of unbounded reasoning obtain in this setting as well.
+%Moreover, we show that by considering the class of locally coherent beliefs
+%we are able to exploit observations about finite objects
+%as evidence about underlying mathematical axioms.
+%To our knowledge, this is the first formal framework
+%in which observations of deterministic finite objects can be accepted as evidence.
+%
+%\item \emph{The infinite:} Though we are fundamentally interested
+%in the case of bounded reasoners living in a computable universe,
+%we find that it is easier to consider computationally unbounded
+%agents living in an uncomputable universe.
+%These agents have the resources to deduce all logical consequences
+%of axioms they accept,
+%but they must contend with an environment that cannot be pinned down
+%by any set of first-order axioms.
+%We imagine the case in which the environment is \emph{more uncomputable}
+%than the agents themselves---either by making more extensive use of
+%a halting oracle, or lying further up the arithmetical hierarchy.
+%
+%In the infinite case we can define agents whose beliefs are closed
+%under logical implications,
+%which allows us to apply the machinery of mathematical logic without
+%modification.
+%We will therefore first present most of our results in the context
+%of uncomputable reasoners reasoning about an uncomputable world,
+%and later show how to ``scale them down'' to finite reasoning.
+%\end{enumerate}
+%
+%\subsection{Computation and tractability}
+%
+%Formally, when we talk about bounded reasoners we mean
+%to refer to algorithms which terminate in finite time.
+%Of course, in practice ``finite time''
+%is too crude a guarantee to be meaningful.
+%But just as moving from ``infinite'' to ``finite'' substantially increases
+%the complexity of the problem,
+%so too does moving from ``finite'' to ``efficient.''
+%
+%We have two remarks to make in our defense:
+%\begin{enumerate}
+%\item We do not aim to resolve the \emph{algorithmic} problems
+%regarding general inference.
+%At this point it seems plausible (though perhaps not probable) that this is the
+%core challenge in building an intelligent system.
+
+%Instead, we aim to reduce a philosophical problem to an algorithmic problem---to
+%show how the problem of mathematical reasoning can be cast
+%in exactly the same light as more traditional problems of artificial intelligence.
+%We make no claim that this is the ``hard part,''
+%merely that it is one interesting direction for inquiry.
+%
+%This goal may seem either offensively ambitious or too simple to be worthwhile,
+%depending on the audience.
+%But as they say: if you can't please everyone, you might as well please no one.
+%Hopefully the end result will speak for itself:
+%we think the results suggest that this program is neither too ambitious to make progress,
+%nor so obvious that there is nothing new to learn.
+%\item The notion of ``tractability'' may be more subtle than it at first appears.
+%If we parametrize our algorithms by the \emph{quantifier-depth} they can handle,
+%we obtain an inference problem over a doubly-exponential domain
+%(for which we propose a naive brute-force strategy which takes triply-exponential time).
+%But in fact sentences of quantifier depth 4 already have considerable expressive power
+%(perhaps exceeding human intuition),
+%and so doubly-exponential time may not be an unreasonable computational demand
+%(after all, $O\of{2^{2^5}}$ is today an eminently reasonable running time for an algorithm).
+%
+%Improving the unacceptable aspects of this approach---in particular its
+%exponentially slow approach to inference, and its inefficient
+%representation of the algebra generated by a finite set of sentences---fits 
+%squarely into current research programs in AI and algorithms.
+%Again, we would not go so far as to say that our results will be practically
+%relevant in the foreseeable future,
+%but we would argue that this approach should not be excluded
+%on the basis of the computational difficulties,
+%any more than Bayesian inference should be excluded 
+%as an approach in traditional domains
+%because of the intractability of exact inference.
+%\end{enumerate}
+%
+%\section{Coherence}
+%
+%%\subsection{``Easy'' tautologies}
+%%Now we will define an ``easy'' tautology.
+%%Let $k \geq 3$ and $r \geq 1$ be some absolute constants,
+%%fixed for the entire paper.
+%%In this section we will represent $k$ and $r$ explicitly,
+%%but in the future we will simply leave them implicit.
+%%\renewcommand{\oe}{\sim}
+%%\begin{definition}[Easy tautology]
+%%Let $T$ be the set of tautologies of first-order logic
+%%with no relation, function, or constant symbols, quantifier rank at most $r$, and $k$ propositional
+%%variables, $p_1, p_2, \ldots, p_k$.
+%We say that a formula $\vp$ in a first-order language $L$ is an \emph{easy tautology} if 
+%there is a sentence $\xi \in T$,
+%and formulas $\psi_i \in L$ such that
+%\[ \vp = \xi\left[p_i := \psi_i\right] \]
+%(with the typical condition that the variables bound by $\xi$
+%at each appearance of $p_i$ must be
+%free variables of $\psi_i$).
+%\end{definition}
+%Note in particular that our propositional variables
+%may occur under quantifiers,
+%so for example 
+%\[\of{\of{\forall x : \vp\of{x}} \wedge \of{\forall x : \psi\of{x}}}\iff
+%\of{\forall x : \vp\of{x} \wedge \psi\of{x}} \]
+%is an easy tautology as long as $k \geq 2$ and $r \geq 1$.
+%
+%It is easy to see that for $k \geq 3$, $r \geq 1$,
+%the easy tautologies suffice to axiomatize
+%first-order logic (this follows immediately from the existence
+%of any axiomatization in which no axiom contains more than three propositional
+%variables or one nested quantifier).
+
+%\begin{definition}[Trivial equivalence]
+%\begin{multicols}{2}
+%\begin{itemize}[label=]
+%\item $\of{\psi \wedge \vp} \sim \of{\vp \wedge \psi}$.
+%\item $\of{\vp \wedge \vp} \sim \vp$.
+%\item $\of{\vp \wedge \neg \vp} \sim \bot$.
+%\item $\of{\psi \wedge \of{\vp \wedge \xi}} \sim \of{\of{\psi \wedge \vp} \wedge \xi}$.
+%\item $\of{\neg \neg \vp} \sim \vp$.
+%\item $\psi \vee \vp \sim \neg\of{\neg\psi \wedge \neg\vp}$.
+%\item $\psi \rightarrow \vp \sim \of{\vp \vee \neg\psi}$.
+%\item $\psi \iff \vp \sim \of{\vp \rightarrow \psi \wedge \psi \rightarrow \vp}$
+%\item $\top \sim \neg \bot$.
+%\item $\of{\bot \wedge \vp} \sim \bot$.
+%\item $\of{\top \wedge \vp} \sim \vp$.
+%\end{itemize}
+%\end{multicols}
+%\begin{itemize}[label=]
+%\item $\of{\of{\forall x : \psi} \wedge \of{\forall x : \vp}} \sim \forall x : \of{\psi \wedge \vp}$
+%\item If $x$ is not free in $\vp$, $\vp \sim \of{\forall x : \vp}$.
+%\item If $y$ is not free in $\vp$, then $\of{\forall x : \vp } \sim \of{\forall y : \vp\left[x := y\right]}$
+%\item For any term $t$, $\of{\forall x : \vp} \sim \of{\vp\left[x := t\right] \wedge \forall x : \vp}$
+%\end{itemize}
+%Second, if $\vp \sim \psi$, then
+%\begin{multicols}{3}
+%\begin{itemize}[label=]
+%\item $\neg \vp \sim \neg \psi$
+%\item $\of{\forall x : \vp} \sim \of{\forall x : \psi}$
+%\item $\of{\vp \wedge \xi} \sim \of{\psi \wedge \xi}$.
+%\end{itemize}
+%\end{multicols}
+%
+%
+
+\section{Coherence}\label{coherence}
+
+\subsection{Logical preliminaries}
+
+For concreteness, and to keep the exposition simple,
+we will consider a single first-order language $L$ containing:
+\begin{itemize}
+\item An unlimited supply of variables: $x_1, x_2 \ldots$.
+\item An unlimited supply of constant symbols: $c_1, c_2, \ldots$,
+\item For each $k \geq 1$, an unlimited supply of $k$-ary predicate symbols:
+$A^k_1, A^k_2, \ldots$,
+\item For each $k \geq 1$, an unlimited supply of $k$-ary function symbols:
+$f^k_1, f^k_2, \ldots$.
+\end{itemize}
+
+We will work with classical logic,
+and choose a Hilbert-style deductive system in which
+modus ponens is the only rule of inference.
+This will greatly simplify our algorithms,
+since in our context modus ponens is a consequence
+of additivity for probability distributions.
+%XXX the following text is super cumbersome and needs to be cleaned up
+
+In general, we are interested in learners
+who take no axioms for granted other than those of first-order logic
+with equality: everything else is to be learned from experience\footnote{In fact
+ it is also possible to consider systems for which the axioms of first-order logic
+ are themselves merely inductive generalizations, and the laws of probability theory
+ are the only built-in epistemic principles.
+ But taking such an extreme
+ position at the outset would complicate the exposition considerably,
+ and so we leave fleshing out this position to future work.
+}.  We will often discuss agents who accept some stronger set of axioms,
+particularly Robinson arithmetic\footnote{A minimal set theory would serve an identical role;
+ we have sacrificed some conceptual simplicity for greater familiarity.}. %XXX cite all this stuff
+We are interested in the behavior of an agent who axiomatically accept Robinson arithmetic
+primarily as a simple approximation to the behavior of an agent who provisionally
+accepts Robinson arithmetic
+as an explanation for some observations (we will discuss this much more
+in section~\ref{math}).
+However, the skeptical reader can just as well imagine that we sometimes
+work with an agent who accepts the axioms of Robinson arithmetic along with first-order logic.
+
+Recall that Robinson Arithmetic $\RQ$ is axiomatized by the following 7 axioms,
+where $S$ is one of the unary function symbols,
+$+$ and $*$ are two of the binary function symbols (we write
+them in infix notation for convenience), and $0$ is one of the constant symbols:
+\begin{enumerate}
+\item $\forall x : S x \neq 0$.
+\item $\forall x, y : S x = S y \rightarrow x =y$.
+\item $\forall x : x \neq 0 \rightarrow \exists y : x = S y$.
+\item $\forall x : x + 0 = x$.
+\item $\forall x, y : x + S y = S(x + y)$.
+\item $\forall x : x * 0 = 0$.
+\item $\forall x, y : x * S y = (x * y) + x$.
+\end{enumerate}
+
+
+\subsubsection{Equivalent sentences}
+
+Though we will talk about probabilities of sentences,
+we are really interested in the probabilities of events
+defined by sentences.
+We would like to define
+our probability distributions over such events
+rather than needing to pay attention to the details
+of the way in which an event is represented by a sentence.
+It will therefore be useful to have a notion of
+``trivial'' equivalence between logical sentences,
+and to define our probability distributions on equivalence
+classes of sentences.
+This allows us to move freely between equivalent
+representations.
+
+However, because we are ultimately interested
+in efficient algorithms,
+we need to ensure that there is an efficient
+algorithm to judge whether two sentences are equivalent.
+So for example,
+it would be inappropriate to consider
+two sentences equivalent if their equivalence
+is a propositional tautology,
+because identifying propositional tautologies is
+computationally intractable.
+
+We opt for a fragment of logic
+which lacks the distributivity
+laws for conjunction and disjunction
+but which is otherwise complete.
+This is motivated by the observation that although $\of{\vp \vee \psi} \wedge \xi$
+is equivalent to $\of{\vp \wedge \xi} \vee \of{\psi \wedge \xi}$,
+this operation increases the representational complexity of
+the sentence and so corresponds to a non-trivial representational transformation.
+
+Note that although this notion will allow us to more comfortably
+manipulate sentences, it is primarily a technical convenience
+and does not play an essential conceptual role.
+
+\begin{definition}[Trivial equivalence]
+We define $\sim$ as the minimal
+equivalence relation satisfying the following conditions:
+For each $\psi, \vp, \xi$:
+\begin{multicols}{2}
+\begin{itemize}[label=]
+\item $\of{\psi \wedge \vp} \sim \of{\vp \wedge \psi}$.
+\item $\of{\psi \wedge \of{\vp \wedge \xi}} \sim \of{\of{\psi \wedge \vp} \wedge \xi}$.
+\item $\of{\vp \wedge \vp} \sim \vp$.
+\item $\of{\vp \wedge \neg \vp} \sim \bot$.
+\item $\of{\neg \neg \vp} \sim \vp$.
+
+\item $\of{\vp \wedge \bot} \sim \bot$
+\item $\of{\vp \wedge \top} \sim \vp$
+\item $\neg \bot \sim \top$
+\item $\of{\psi \vee \vp} \sim \neg \of{\neg \psi \wedge \neg \vp}$
+\item $\of{\psi \rightarrow \vp} \sim \of{ \vp \vee \neg \psi }$
+\item $\exists x : \vp\of{x} \sim \neg \forall x : \neg \vp\of{x}$
+
+%\item $\of{\bot \wedge \vp} \sim \bot$.
+%\item $\of{\neg \bot \wedge \vp} \sim \vp$.
+%\item $\forall x : \bot \sim \bot$
+%\item $\forall x : \neg \bot \sim \neg \bot$
+\end{itemize}
+\end{multicols}
+\begin{itemize}[label=]
+\item If $x_j$ is not free in $\vp$, then $\of{\forall x_i : \vp} \sim \of{\forall x_j : \vp\left[x_i = x_j\right]}$.
+\end{itemize}
+And whenever $\vp \sim \psi$:
+\begin{multicols}{3}
+\begin{itemize}[label=]
+\item $\neg \vp \sim \neg \psi$
+\item $\of{\forall x : \vp} \sim \of{\forall x : \psi}$
+\item $\of{\vp \wedge \xi} \sim \of{\psi \wedge \xi}$.
+\end{itemize}
+\end{multicols}
+If $\vp \sim \psi$, we say that $\vp$ and $\psi$ are trivially equivalent.
+\end{definition}
+
+The important fact about trivial equivalence is that it is easy to determine
+whether two sentences are equivalent:
+
+\both{
+\begin{theorem}
+It is possible to determine whether $\vp \sim \psi$ in $n\log^2 n$ time,
+where $n$ is the total length of $\vp$ and $\psi$.
+\end{theorem}
+}
+Essentially, we can greedily apply
+the rules defining $\sim$ until we arrive at the simplest representation
+of some $\vp$,
+which is unique. The proof is not difficult but involves a tedious
+structural induction and is deferred to the appendix.
+In fact, this proof technique shows that given a set of sentences with total length $N$,
+we can divide them into equivalence classes under trivial equivalence
+in time $N \log^2 N$.
+\later{
+\begin{proof}
+First, observe that $\vp \sim \psi$ iff there is a series
+of operations, of the sort described in the definition of $\sim$,
+which transforms $\vp$ into $\psi$. (These operations
+might be applied to arbitrary subexpressions).
+
+By using a sequence of such operations, we will describe how to transform
+any expression $\vp$ into a canonical expression $\vp^*$
+in a new language where $\wedge$ is modified to take a set rather than a pair
+of arguments.
+We will show that if $\vp \sim \psi$ then $\vp^* = \psi^*$,
+so that computing $\vp^*$ provides an algorithm to test for trivial equivalence.
+
+First, we remove all occurrences of $\rightarrow, \vee, \exists$.
+Then we inductively define $\vp^*$ as follows:
+\begin{enumerate}[label=\textbf{Case \arabic*:}]
+\item $\vp \in \b{\bot, \top}$. $\top^* = \wedge_{\emptyset}, \bot^* = \neg \wedge_{\emptyset}$,
+where $\wedge_{\emptyset}$ is $\wedge$ applied to no arguments.
+\item $\vp$ is an atom. $\vp^* = \vp$.
+\item $\vp = \neg \psi$. If $\psi^* = \neg \xi^*$ then $\vp^* = \xi^*$.
+Otherwise, $\vp^* = \neg \psi^*$.
+\item $\vp = \forall x_j : \psi$. Let $x_i$ be the lexicographically first variable
+not appearing in $\psi^*$. Then $\vp^* = \forall x_i : \psi^*\left[x_j = x_i\right]$.
+\item $\vp = \psi \wedge \xi$. 
+For any expression $\zeta^*$, define 
+\[ S\of{\zeta^*} = \begin{cases} 
+ S &\mbox{if } \zeta^* = \bigwedge\limits_{\theta^* \in S} \theta^* \\
+ \b{\zeta^*} &\mbox{otherwise} 
+\end{cases}\]
+Define $S = S\of{\psi^*} \cup S\of{\xi^*}$.
+If there is some $\neg \theta^* \in S$ such that $S\of{\theta^*} \subset S$,
+then $\vp^* = \neg \wedge_{\emptyset}$.
+In this case, we say that $\vp$ is false by virtue of noncontradiction.
+
+If $S = \b{\theta^*}$, then $\vp^* = \theta^*$.
+Otherwise, $\vp^* = \bigwedge\limits_{\theta^* \in S} \theta^*$.
+
+\end{enumerate}
+It is straightforward to verify by induction that if $\vp^* = \psi^*$
+then $\vp \sim \psi$.
+The only challenging step is showing that if $\vp$ is false
+by noncontradiction, then $\vp \sim \bot$,
+but this can be done by rearranging the conjuncts of $\vp$
+appropriately until it is of the form $\psi \wedge \of{\theta \wedge \neg \theta } \sim \psi \wedge \bot \sim \bot$.
+By using standard data structures for sets,
+we can compute $A \cup B$ or $A \subset B$
+in time $\log\of{\abs{A}} \abs{B}$.
+This yields an $O\of{n \log^2{n}}$ time algorithm
+for computing $\vp^*$, where $n$ is the length of $\vp$
+(as long as we always merge the smaller set into the larger set).
+
+It remains to show that if $\vp \sim \psi$, then $\vp^* = \psi^*$.
+It is sufficient to check each of the transformations in the definition of $\sim$,
+and then we can induct on the number of transformations transforming $\vp$ into $\psi$.
+Moreover, since $\vp^*$ depends only on the canonical form of its subexpressions,
+it suffices to consider the case where $\vp \sim \psi$ pattern matches
+exactly with one of the defining transformations, and then we can
+induct on the structure of $\vp$.)
+It is routine to check almost all of these rules.
+Only two present difficulty:
+\begin{enumerate}
+\item $\vp \wedge \neg \vp \sim \bot$.
+In this case, observe that $S\of{\vp^*} \subset S\of{\vp^*}$
+regardless of the form of $\vp^*$, and so the expression
+on the left is false by virtue of noncontradiction
+and has a canonical form of $\neg \wedge_{\emptyset}$.
+\item $\vp \wedge \of{\psi \wedge \xi} \sim \of{\vp \wedge \psi} \wedge \xi$.
+The canonical forms of these expressions are usually equal by virtue
+of the associativity of set unions.
+The only possible failure is if one of them is false by virtue of noncontradiction.
+Let $S = S\of{\vp^*} \cup S\of{\psi^*} \cup S\of{\xi^*}$.
+It is straightforward to check that each side of this expression
+is false by noncontradiction if and only if $S$ contains some $\neg \theta^*$
+such that $S\of{\theta^*} \subset S$.
+Since this is the same condition on both sides,
+these are equivalent.
+\end{enumerate}
+
+\end{proof}
+}
+
+%\subsection{Equivalent sentences}
+%
+%Throughout this paper, and especially when considering bounded reasoners, 
+%it will be useful to have a notion
+%of ``trivial'' equivalence of sentences.
+%This will allow us to freely rewrite sentences without
+%paying extremely careful attention to what can or cannot
+%be immediately inferred.
+%In essence, we want to consider probability distributions
+%defined on \emph{events} (which are logically specified)
+%rather than having to pay careful attention to the representation
+%of those events by particular logical formulas.
+%
+%The key property of this notion is that
+%it should be computationally efficient to
+%verify whether two sentences are trivially equivalent.
+%So for example, a natural proposal would be to say
+%that two sentences are equivalent if their
+%equivalence is a propositional tautology,
+%but we ruled out such a generous notion of trivial equivalence
+%because checking propositional tautologies is computationally infeasible.
+%
+%Instead we rely on a notion based on a minimal set of syntactic
+%rewriting rules.
+%The key omissions are that we do not allow the rewriting
+%$\vp \wedge \neg \vp \sim \bot$,
+%nor the application of modus ponens.
+%We suspect it is possible to allow $\vp \wedge \neg \vp \sim \bot$
+%as long as modus ponens (and distributivity) is excluded,
+%but this is an algorithmic problem outside of the scope of this paper.
+%
+%\begin{definition}[Trivial equivalence]
+%We define the relation $\sim$ as follows.
+%For each $\psi, \vp, \xi$:
+%\begin{multicols}{2}
+%\begin{itemize}[label=]
+%\item $\of{\psi \wedge \vp} \sim \of{\vp \wedge \psi}$.
+%\item $\of{\vp \wedge \vp} \sim \vp$.
+%\item $\of{\psi \wedge \of{\vp \wedge \xi}} \sim \of{\of{\psi \wedge \vp} \wedge \xi}$.
+%\item $\of{\neg \neg \vp} \sim \vp$.
+%\item $\of{\bot \wedge \vp} \sim \bot$.
+%\item $\of{\neg \bot \wedge \vp} \sim \vp$.
+%\item $\forall x : \bot \sim \bot$
+%\item $\forall x : \neg \bot \sim \neg \bot$
+%\end{itemize}
+%\end{multicols}
+%And that, whenever $\vp \sim \psi$:
+%\begin{multicols}{3}
+%\begin{itemize}[label=]
+%\item $\neg \vp \sim \neg \psi$
+%\item $\of{\forall x : \vp} \sim \of{\forall x : \psi}$
+%\item $\of{\vp \wedge \xi} \sim \of{\psi \wedge \xi}$.
+%\end{itemize}
+%\end{multicols}
+
+%If $\psi \sim \vp$, we say that $\psi$ and $\vp$ are \emph{trivially equivalent}.
+%\end{definition}
+%
+%The important thing about trivial equivalence is that it really is trivial:
+%\begin{theorem}
+%There is an almost linear time algorithm which decides whether $\vp \sim \psi$.
+%\end{theorem}
+%\begin{proof}
+%The canonical form $\vp^*$ of a sentence $\vp$
+%is given by removing all double negations,
+%eliminating all instances of $\bot$ (except perhaps
+%for a single instance at the root),
+%flattening all nested conjunctions into a single
+%arbitrary conjunction,
+%ignoring the order of conjuncts,
+%and iteratively removing duplicate conjuncts.
+%All of these procedures can be done in almost linear time
+%(the only hard step is sorting the conjuncts
+%and removing duplicates).
+%
+%It is easy to check that if $\vp^* = \psi^*$ then $\vp \sim \psi$.
+%In fact the converse is also true, and so converting into
+%canonical form provides an almost linear time equivalence test.
+%Annotate each element with the sequence of
+%$\wedge, \forall, \neg$ on the path from the root to that element.
+%Except for eliminating duplicates and $\bot$,
+%no basic trivial equivalences change the set of atoms in a sentence,
+%and moreover they leave the sequence of $\wedge, \forall, \neg$
+%unchanged except by introducing double negations
+%or changing the number of consecutive $\wedge$'s.
+%\end{proof}
+
+%We inductively define the relation $\sim$ as follows.
+%If $\vp \iff \psi$ is an easy tautology, then $\vp \sim \psi$.
+%If $\vp \sim \psi$ and $\psi \sim \xi$, then $\vp \sim \xi$.
+%Finally, 
+%if $\vp_1 \sim \psi_1$
+%and $\vp_2 \sim \psi_2$, then:
+%If $\vp \sim \psi$, we say that $\vp$ and $\psi$ are \emph{trivially equivalent}.
+%\end{definition}
+%The important fact about trivial equivalence is that it really is trivial:
+%\begin{theorem}
+%For each $k$,
+%given a sentence $\vp$ we can check whether $\vp$
+%is an easy tautology in polynomial time.
+%\end{theorem}
+%\begin{proof}
+%First we can check if $\vp$ is formed from an easy tautology
+%by any of the permitted rules.
+%
+%Any sentence $\vp$ has polynomially many subexpressions;
+%thus there are polynomially many
+%ways of choosing each $p_i$ to be a subexpression of $\vp$.
+%Moreover, we can assume without loss of generality
+%that no $p_i$ can be written as an expression of the other $p_j$
+%(or else the formula could be obtained by substituting into a propositional
+%tautology with $k-1$ variables).
+%So we can assume that there is at most one way to obtain $\vp$
+%via substitution; suppose that $\vp$ is obtained by substitution into $\xi$.
+%It remains only to check whether $\xi$ is a tautology.
+%
+%But since $\xi$ has bounded quantifier rank and a bounded
+%number of propositional variables,
+%we can reduce it to one of a finite number of representatives,
+%and look up that representative in an exhaustive list
+%of tautologies.
+%\end{proof}
+
+%\subsubsection{Theory}
+%
+%The distributions $\PP$ that we have described so far
+%correspond to distributions over consistent theories.
+%We may want to impose additional constraints on these theories,
+%for example that they extend some base theory such as Peano Arithmetic.
+%
+%Fortunately this is very simple to do in our picture:
+%we can simply impose the single additional restriction
+%that $\PP$ assigns probability 1 to some theory of interest $T$.
+%
+%In general we will advocate avoiding this wherever possible---we
+%take the view that the axioms of a theory should be learned
+%from data rather than introduced by fiat.
+%However, we will sometimes take this approach in order to simplify
+%the exposition.
+%In particular, we will restrict our attention
+%to theories which satisfy the axioms of the theory ST,
+%a minimal set theory with axioms of adjunction, empty set,
+%and extensionality.
+%This allows us to talk freely about sets, lists, pairs, and so on.
+%
+%To this end, we write $\in$ as a shorthand for the binary relation $A^2_1$
+%introduced in our language above, and define:
+%\begin{definition}[ST]
+%ST is the theory with the axioms
+%\begin{enumerate}
+%\item $\exists \phi : \forall x : x \not\in \phi$.
+%\item $\forall x \forall y : \of{\forall z : \of{z \in x \leftrightarrow z \in y}
+%\rightarrow x = y}$
+%\item $\forall S \forall x \exists T : \forall z : \of { z \in T \leftrightarrow
+%\of { z = x \wedge z \in S}}$
+%\end{enumerate}
+%\end{definition}
+%
+%Note that ST is expressive enough to perform \Godel numbering.
+%That is, we can recursively form a quotation $\q{\vp}$ of any sentence $\vp$
+%in terms of the quotations of its constitutents.
+%We will use such quotations without further discussion.
+%
+%Sometimes, when talking about reflection within our systems,
+%we will be interested in describing real numbers and algorithms.
+%In these contexts
+%we will often work with ZFC together with a distinguished
+%set $\mathbb{R}$ satisfying the axioms of the real numbers
+%and a constant symbol $q \in \mathbb{R}$ for each $q \in \QQ$.
+%
+%When we discuss theories stronger than ST
+%which have their own implementation of $\in$ 
+%for the hereditarily finite sets (for example PA or ZFC),
+%we also mean to include the axiom that 
+%the symbol $\in$ of ST corresponds to the symbol $\in$ of the new theory.
+%
+\subsection{Coherence}
+
+Now we will define what we mean by a probability
+distribution over logical facts.
+We follow the definition of Gaifman\cite{gaifman04}.
+
+Rather than thinking in terms of models,
+we will think about a probability distribution as a map 
+$\PP : L \rightarrow \RR$.
+There are coherence conditions imposed on this map
+by the logical relationships amongst sentences,
+together with the usual probabilistic laws.
+\newcommand{\D}[1]{\Delta\of{#1}}
+\begin{definition}[Coherence]
+We say that a map $\PP : S \rightarrow \RR$ is \emph{coherent}
+with respect to a set of sentences $S$ if it satisfies the properties:
+\begin{enumerate}
+\item Normalization: $\P{\top} = 1$.
+\item Preservation of axioms: For any axiom $\vp \in S$, $\P{\vp} = 1$.
+\item Non-negativity: $\P{\vp} \geq 0$.
+\item Weak consistency: if $\vp \sim \psi$, then $\P{\vp} = \P{\psi}$.
+\item Additivity: $\P{\vp} = \P{\vp \wedge \psi} + \P{\vp \wedge \neg{\psi}}$.
+\end{enumerate}
+Let $\D{S}$ be the set of all maps $ \PP : S \rightarrow \RR$
+which are coherent with respect to $S$.
+\end{definition}
+The axioms may be taken to be only the axioms of first-order logic,
+or may include the axioms of some theory of interest $T$.
+
+If $S$ is the set of all sentences, then we simply say that $\PP$ is \emph{coherent}.
+Otherwise we say that $\PP$ is locally coherent.
+
+Many similar definitions have appeared recently %XXX cite them
+all of which are essentially equivalent in the case of $S = L$
+to Kolmogorov's formulation. %XXX cite this
+Our presentation differs slightly from the traditional presentation
+for the sake of computational convenience:
+we use preservation of axioms and weak consistency in place of preservation
+of theorems because of its nicer computational properties,
+and adopt a purely syntactic formulation of additivity.
+
+To justify our definition, we reproduce the following standard theorem
+which shows that these conditions are exhaustive, modified
+for our alternative axiomatization.
+It is worth noting that the result makes no use of the fact that
+$\PP$ assigns probability 1 to axioms of first-order logic,
+except in the conclusion that the theories $T$ are theories of first-order logic.
+If we weakened the preservation of axioms condition,
+we would obtain a similar theorem but with respect to some broader
+class of assignments $L \rightarrow \b{\bot, \top}$ than consistent
+theories of first-order logic.
+\begin{theorem}\label{distribution}
+A distribution $\PP$ is coherent if and only if there
+is some probability measure $\mu$ on the space of complete consistent
+theories such that for all $\vp$, $\P{\vp} = \mu\of{\bc{T}{T \vdash \vp}}$.
+\end{theorem}
+\begin{proof}
+It is easy to verify that for any $\mu$,
+the function $\PP : L \rightarrow \RR$ defined by $\mu$
+is coherent.
+It remains to show that for any coherent $\PP$,
+we can find a measure $\mu$ such that
+$\P{\vp} = \mu\of{\bc{T}{T \vdash \vp}}$.
+We will describe a process which generates a theory,
+such that the distribution of theories
+generated by the process reproduces $\PP$ in the appropriate way.
+
+The first step is showing that if $\vdash \vp$, then $\P{\vp} = 1$.
+Let $S$ be the set of sentences that are assigned probability $1$.
+Since $\PP$ preserves axioms, each axiom is in $S$.
+So it suffices to show that $S$ is closed under modus ponens.
+First we make some preliminary observations:
+\begin{itemize}
+\item By additivity and non-negativity, $\P{\vp \wedge \psi} \leq \P{\vp}$.
+\item By weak consistency $\P{\top \wedge \bot}  = \P{\bot}$, $\P{\top \wedge \top} = \P{\top}$.
+By normalization and additivity, $\P{\bot} = 0$.
+\item By weak consistency, $\P{\vp \wedge \neg \vp} = 0$.
+By additivity and normalization, it follows that $\P{\vp} = 1 - \P{\neg \vp}$.
+\item By weak consistency and the previous observation,
+$\P{\vp \rightarrow \psi} = 1$ if and only if $\P{\vp \wedge \neg \psi} = 0$.
+\end{itemize}
+
+Now suppose that $\vp \in S$ and $\vp \rightarrow \psi \in S$.
+Then by the preceding observations and additivity:
+\[\P{\psi} \geq \P{\vp \wedge \psi} = \P{\vp \wedge \neg \psi} + \P{\vp \wedge \psi} = \P{\vp} = 1,\]
+hence $S$ is closed under modus ponens and contains all theorems of first-order logic.
+We conclude that if $\vdash \vp$, then $\P{\vp} = 1$.
+
+Now,
+fix some enumeration $\vp_1, \vp_2, \ldots$ of all of the sentences of $L$.
+Let $T_0 = \emptyset$
+and iteratively define $T_{i+1}$ in terms of $T_i$ as follows. 
+If $T_i$ is complete, we set $T_{i+1} = T_i$.
+Otherwise, let $\vp_j$ be the first statement in our enumeration which is independent of $T_i$.
+
+Let $T_{i+1} = T_i \cup \vp_j$ with probability 
+$\Pc{\vp_j}{T_i}$\footnote{
+    By definition
+    $\P{T} = \P{\wedge_{\vp \in T} \vp}$, which is defined uniquely by weak consistency,
+    and $\Pc{\vp_j}{T_i} = \frac{\Po{\vp_j \wedge T_i}}{\Po{T_i}}$. 
+    It is easy to verify by induction that $\Po{T_i} > 0$ with probability 1,
+    over the random choices of our process.
+}
+and $T_{i+1} = T_i \cup \neg \vp_j$ with probability $\Pc{\neg \vp_j}{T_i}$.
+Because $\vp_j$ was independent of $T_i$, the resulting system remains consistent
+in either case.
+Define $T = \cup_i T_i$.
+Since each $T_i$ is consistent, $T$ is consistent by compactness.
+For each $i$, $\vp_i$ or $\neg \vp_i$ will eventually be included in the theory
+so $T$ is complete.
+
+By additivity and weak consistency
+\[\Pc{\vp}{T_i} = \Pc{\vp}{T_i \wedge \vp_j} \Pc{\vp_j}{T_i}
++ \Pc{\vp}{T_i\wedge\neg\vp_j}\Pc{\neg\vp_j}{T_i},\]
+thus the sequence $\Pc{\vp}{T_i}$ is a martingale.
+
+Since $\P{T} = 1$ if $T$ is a theorem,
+if $T \vdash \vp$ then $\Pc{\vp}{T} = 1$.
+Since $T_i \vdash \vp$ or $T_i \vdash \neg \vp$ for large
+enough $i$,
+$\Pc{\vp}{T_i}$ stabilizes at either $0$ or $1$.
+Moreover, $T \vdash \vp$ iff this sequence stabilizes at 1.
+The martingale property
+then implies that $T \vdash \vp$ 
+with probability $\Pc{\vp}{T_0} = \P{\vp}$.
+\end{proof}
+
+\subsubsection{Impossibility}
+
+Ultimately we are interested in understanding finite agents.
+Unfortunately, a finite agent cannot find any coherent
+mapping $\PP \in \D{S}$, even implicitly.
+\begin{theorem}\label{impossibility}
+There is no recursively approximable coherent map $\PP : L \rightarrow \RR$
+which assigns non-negligible probability to the axioms of $\RQ$.
+\end{theorem}
+\begin{proof}
+Suppose $\PP'$ was such a map.
+Then we can define a new coherent map $\PP$ which assigns
+probability $1$ to $\RQ$,
+via
+\[ \P{\vp} = \PP'\ofc{\vp}{\RQ}. \]
+Note that $\PP$ is also recursively approximable.
+It is coherent, because it is obtained by conditioning
+the distribution over theories corresponding to $\PP'$
+on the event that the theory entails $\RQ$.
+
+Thus there is a Turing machine $M$
+such that $M$ halts on input $\q{\vp}$ and outputs
+$0$ if $\P{\vp} = 0$ and $1$ if $\P{\vp} = 1$---$M$
+can simply compute increasingly accurate approximations
+to $\vp$ until it either proves $\P{\vp} < \frac 23$,
+in which case it outputs $0$, or $\P{\vp} > \frac 13$, in which case it outputs $1$.
+One of these is guaranteed to happen eventually.
+
+Since $\P{\RQ} = 1$, by diagonalization we can construct a sentence $\vp$ such that
+$\P{\vp} = \P{M\of{\q{\vp}} = 0}$.
+Since $M$ always halts, it is either a theorem
+of $\RQ$ that $M\of{\q{\vp}} = 0$ or $M\of{\q{\vp}} = 1$.
+Thus one of these statements is true and has probability $1$.
+Suppose that 
+$M\of{\qvp} = 1$ and hence $\P{M\of{\qvp} = 1} = 1$.
+Then $\P{\vp} = 0$, and so by construction of $M$
+$M\of{\qvp} = 0$, a contradiction.
+If instead $M\of{\qvp} = 0$, then $\P{M\of{\qvp} = 0} = 1$.
+Then $\P{\vp} = 1$, so by construction of $M$
+$M\of{\qvp} = 1$, a contradiction.
+\end{proof}
+
+In light of this impossibility result (and the even more 
+serious difficulties when we try to design \emph{efficient}
+algorithms), we rely on a weaker notion of coherence.
+
+\subsection{Local coherence}
+%XXX  change language of local coherence
+
+For any finite set $S$, it is possible to find
+locally coherent distributions $\PP \in \D{S}$
+in an amount of time polynomial in the size of $S$.
+
+One remaining question is what class of sentences to take.
+Representing a larger class introduces significant computational complexity,
+but allows us to represent more complex hypotheses and perform
+more complex deductive reasoning.
+This is simply the traditional tension between accuracy and complexity.
+
+For now, we will 
+assume that we have already identified a reasonably-sized set $S_0$
+containing some sentences of interest to us---descriptions of
+what we may observe or decide, statements about
+what we value, explanatory hypotheses which might account for our
+observations, and so on.
+
+Two considerations seem important when selecting $S$:
+\begin{enumerate}
+\item Even if we are only interested in $S_0$,
+we may want to consider a distribution which is coherent
+over a larger set in order to constrain our beliefs about $S_0$
+further.
+\item If $\vp, \psi \in S_0$ and $\PP \in \D{S_0}$,
+it isn't clear how to define $\Pc{\vp}{\psi}$.
+Typically this would be defined in terms of $\P{\vp \wedge \psi}$,
+but if $S_0$ isn't closed under conjunctions then $\vp \wedge \psi$
+need not be in the domain of $S_0$.
+Requiring $S$ to be large enough to form arbitrary conditional probabilities
+for observations in $S_0$
+is typically prohibitive (it requires $S$ to be as large as all possible
+\emph{subsets} of $S_0$).
+\end{enumerate}
+
+In this section we describe \emph{finite} but radically impractical
+notions of coherence, which are comparable with those that
+have been presented in the literature.
+In the following section, we turn our attention to \emph{tractable}
+notions of coherence,
+which prove to be substantially more challenging.
+
+\subsubsection{Preserving propositional tautologies}\label{closedcoherence}
+
+One approach to relaxing logical omniscience is to
+assume that \emph{propositional} tautologies are assigned probability 1,
+while allowing tautologies of first order logic to be uncertain \cite{gaifman04}.
+
+\newcommand{\cl}[1]{\text{cl}\of{#1}}
+\newcommand{\clS}{\cl{S_0}}
+Define $\clS$ to be the \emph{closure} of $S_0$
+under conjunctions and negations:
+$\clS$ consists of every sentence of the form
+$ \bigwedge \limits_i \vp_i $,
+where each $\vp_i$ is either a sentence of $S_0$ or its negation.
+
+Coherence with respect to $\clS$ is the minimal criterion
+necessary for being able to condition on arbitrary
+sentences of $S_0$ arbitrarily many times.
+Indeed, we have:
+\[ \Pc{\vp}{\vp_1 \wedge \cdots \wedge \vp_k} = \frac {\P{\vp \wedge \vp_1 \wedge \cdots \wedge \vp_k}}{\P{\vp_1 \wedge \cdots \wedge \vp_k}}, \]
+and so if a probability distribution is not coherent with respect to $\clS$,
+there is no clear approach to conditioning on observations in $S_0$
+while remaining coherent.
+
+Although $\clS$ contains only conjunctions of sentences in $S_0$,
+if $\PP$ is coherent with respect to $\clS$
+we can straightforwardly extend it to sentences of the form $\vp \vee \psi$
+by using the principle of inclusion and exclusion.
+
+Because the size of $\clS$ is $2^{|S_0|}$, coherence with respect to $\clS$
+is typically too demanding for a tractable algorithm. 
+This is not a rectifiable deficiency;
+coherence with respect to $\clS$
+implies that propositional tautologies receive probability $1$,
+and identifying propositional tautologies
+is NP-hard and generally believed to require exponential time.
+
+\subsubsection{Bounded quantifier rank}\label{bounded-qr}
+
+If we are only interested in producing finite algorithms
+without concern for computational efficiency,
+we can enlarge the set $S_0$ far beyond $\cl{S}$.
+In this section we will lay out a considerably stronger notion of coherence.
+For simplicity, the reader uninterested in computational complexity can use this as a model
+for our ``idealized mathematical reasoner'' in our discussions of mathematical epistemology.
+
+Coherence with respect to $\clS$ allows us to make any purely logical arguments
+concerning the sentences in $S_0$, but it causes us to treat
+quantified statements as if they were atoms,
+constrained only by whatever relationships appear in the set $S_0$ itself.
+
+Unfortunately, if we allow ourselves to construct new terms
+arbitrarily,
+it is not clear what stops our problem from again becoming uncomputable.
+For example, if we accept the axioms of arithmetic
+and are able to reason about the term $x+1$ whenever we are able
+to reason about the term $x$,
+then we must assign probability 1 to every true $\Sigma_1$
+arithmetical sentence.
+This is impossible, as per the argument in~\ref{impossibility}.
+
+Our approach is to allow ourselves to construct new terms
+of limited complexity.
+This yields a set of sentences which has strong closure
+properties, yet is still finite.
+This notion is very closely related to quantifier rank,
+and indeed we could make use of quantifier rank
+directly if we worked with a purely relational language.
+We present the definition here for convenience:
+\newcommand{\qr}[1]{\text{qr}\of{#1}}
+\newcommand{\Lk}[1]{L\left[#1\right]}
+\begin{definition}[Functional quantifier rank]%XXX better name?
+The \emph{functional quantifier rank} $\qr{\cdot}$ of a formula $\vp$ or term $t$
+is defined inductively as follows:
+\begin{itemize}
+\item $\qr{t} = 0$ if $t$ is a constant symbol or variable.
+\item $\qr{f(t_1, \ldots, t_k}) = \max\of{\qr{t_1}, \ldots, \qr{t_k}} + 1$.
+\item $\qr{A(t_1, \ldots, t_k}) = \max\of{\qr{t_1}, \ldots, \qr{t_k}}$.
+\item $\qr{\vp \wedge \psi} = \qr{\vp \vee \psi} = \max\of{\qr{\vp}, \qr{\psi}}$.
+\item $\qr{\neg \vp} = \qr{\vp}$
+\item $\qr{\forall x : \vp\of{x}} = \qr{\exists x : \vp\of{x}} = \qr{\vp\of{x}}+1$
+\end{itemize}
+Write $\Lk{k}$ for the set of $\vp \in L$ with $\qr{\vp} \leq k$.
+\end{definition}
+It is easily verified by induction on $k$ that each $\Lk{k}$
+contains only finitely many non-equivalent sentences.
+
+So given a set of sentences of interest $S_0$,
+we can work with $\PP \in \D{\Lk{k}}$,
+where $k$ is much larger than the maximum quantifier rank of any $\vp \in S_0$.
+These distributions not only assign probability 1 to propositional
+tautologies,
+they respect any deduction in first order logic
+which requires manipulating terms
+of bounded complexity.
+It is possible to interpret these distributions
+as distributions over stratified models,
+in which each quantifier
+ranges over elements of some specified complexity $\leq k$
+and every nested quantifier must range over a larger set.
+
+\subsection{Tractable notions of coherence}
+
+When moving to the domain of \emph{tractable} notions of coherence,
+we face the two difficulties mentioned earlier:
+\begin{enumerate}
+\item An efficient reasoner cannot infer all consequences
+of their beliefs over propositional logic,
+and so must make use of some approximate scheme
+to draw as many useful inferences as possible.
+\item It is unclear how to update a compactly represented
+probability distribution on a sequence of observations.
+\end{enumerate}
+The first problem is a standard challenge in algorithms;
+for example, it
+is identical to the problem faced in constraint satisfaction.
+We propose addressing it with standard techniques
+from these domains.
+In particular, we propose applying the well-understand
+positive-semidefinite relaxation of the marginal polytope
+to obtain a relaxation of $\D{\clS}$.
+
+The second problem is more technical, but also appears
+to be quite important.
+We propose considering
+$\Pc{\cdot}{\vp}$ as the distribution which assigns
+probability 1 to $\vp$ and which has minimal KL divergence
+to $\PP$.
+We can then estimate the KL divergence as the Bregman divergence
+associated to a certain estimate of the entropy of $\PP$.
+The resulting algorithm is conceptually simple, has a simple interpretation,
+and can be proven to be effective in simple cases.
+
+We will explain both these ideas in more depth over the following sections.
+
+The effectiveness of this approach in general remains an open question.
+Indeed, we expect that more sophisticated approaches are possible
+and will have more desirable properties.
+However, this does appear to be a plausible, tractable
+algorithm for assigning probabilities to mathematical claims,
+and we believe it might serve as a useful model for how this
+problem can be approached.
+
+In this section we will concern ourselves only with
+defining a notion of coherence which is appropriate
+for bounded reasoners.
+In future sections we will turn our attention
+to actually computing probability distributions which satisfy
+this notion of coherence.
+
+%Intuitively, we would like to keep some kind of ``summary''
+%of our beliefs which can be compactly represented.
+%Minimal conditions on this summary might be that we can
+%update it on the basis of evidence,
+%and that it discriminates between the case $\PP{\vp} = 0$
+%and $\PP{\vp} = 1$
+%for a sentence $\vp \in S$.
+%Unfortunately, a simple information-theoretic argument
+%shows that this is generally impossible:
+%
+%\begin{theorem}
+%Let $S$ be the set of propositional tautologies on $n$ variables, $x_1, x_2, \ldots, x_n$.
+%Let $F : \Delta\of{S} \rightarrow \b{0, 1}^{\poly\of{n}}$ be any map.
+%Then either $F\of{\Pc{\cdot}{x_i}}$ is not a function of $F\of{\PP}$,
+%or $\P{x_i}$ is not a function of $F\of{\PP}$, even approximately.
+%\end{theorem}
+%\begin{proof}
+%Suppose to the contrary, and
+%let $f : \b{0, 1}^{n-1} \rightarrow \b{0, 1}$ be arbitrary.
+%Define $\PP$ by choosing $x_1, \ldots, x_{n-1}$
+%to be uniform and independent while $x_n = f(x_1, \ldots, x_{n-1})$.
+%Then by conditioning $\PP$ on an appropriae sequence
+%of events of the form $x_i$
+
+\subsubsection{Relaxing $\D{\clS}$}
+
+Since $S_0$ includes all of the sentences
+that we are interested in, our primary concern is obtaining estimates
+for the probabilities of sentences in $S_0$;
+it is only for the sake of accuracy
+that we would like these probabilities to be extensible
+to a distribution in $\D{\clS}$.
+Write $M$ for the set of distributions in $\D{S_0}$ which can be extended in this way,
+i.e. the set of \emph{projections} of distributions in $\D{\clS}$
+to the coordinates in $S_0$.
+Essentially, we are interested in finding and updating distributions in $M$.
+
+Unfortunately, it is easily seen to be impossible to optimize
+functions over $M$, or to determine whether $M$ is compatible
+with some constraints of the form $\P{\vp_i} = 1$ (this is equivalent to Boolean satisfiability).
+So our task amounts to finding some set $\widetilde{M}$ which \emph{approximates} $M$ well.
+
+This is a problem which has been well-studied in the literature on probabilistic inference,
+as well as the literature on constraint satisfaction and approximation algorithms.
+We will consider the strongest relaxation typically considered,
+which appears to have some characteristics that make it suitable for our setting.
+More powerful relaxations are possible and are sometimes considered,
+but little can yet be said about their general usefulness.
+
+As usual, we stress that our work serves more as a demonstration
+of how these problems could be addressed,
+and it is extremely unlikely that the actual implementations we provide
+are the final say on the subject.
+
+\subsubsection{Sum-of-squares relaxations}\label{sos}
+
+One of the most widely successful paradigms in optimization
+has been the use of semidefinite programming relaxations.
+In this section we describe their application to the present problem.
+
+Write $S_0 \times S_0$ for the set of sentences of the form $\vp \wedge \psi$,
+where $\vp, \psi$ are sentences in $S_0$ or their negations.
+Consider some $\PP \in \D{S_0 \times S_0}$.
+If $\PP$ can be extended to a coherent distribution on $L$,
+or even on $\clS$, then its restriction to $S_0 \times S_0$
+must satisfy some simple positivity conditions.
+In particular, let $\alpha_{\vp} \in \RR$ be a variable
+for each $\vp \in S_0$,
+and consider the sum
+\[ \sum_{\vp, \psi \in S_0} \alpha_{\vp} \alpha_{\psi} \P{\vp \wedge \psi}. \]
+This sum is the expectation of a certain random variable, $\E{f^2}$,
+where $f$ is defined by
+\[ f = \sum_{\vp \in S_0}  \begin{cases} 
+    \alpha_{\vp} & \mbox{if } \vp \\
+    0 & \mbox{else}
+\end{cases} \]
+Since $f^2$ is always non-negative, its expectation should also be non-negative. 
+Thus for any choice of $\alpha$, we should have
+\[ \sum_{\vp, \psi \in S_0} \alpha_{\vp} \alpha_{\psi} \P{\vp \wedge \psi} \geq 0. \]
+
+\newcommand{\Dp}[1]{\Delta^+\of{#1}}
+If we let $\Sigma_{\PP}$ be the matrix with rows and columns indexed by $S_0$
+and with $(\vp, \psi)$ entry given by $\P{\vp \wedge \psi}$,
+then this condition is precisely equivalent to the positive semi-definiteness
+of $\Sigma_{\PP}$ (written $\Sigma_{\PP} \geq 0$).
+Write $\Dp{S_0}$ for the set of $\PP \in \D{S_0 \times S_0}$ satisfying this constraint.
+
+\begin{example}
+Suppose $S_0$ consists of three propositions $p, q, r$.
+Then there is a $\PP \in \D{S_0 \times S_0}$
+such that
+\begin{gather*}
+\P{p} = \P{q} = \P{r} = \frac 12 \\
+\P{p \wedge q} = \P{q \wedge r} = \frac 12 \\
+\P{p \wedge r} = 0
+\end{gather*}
+Of course this distribution cannot be extended to a coherent distribution over $S_0 \times S_0 \times S_0$.
+We can detect this failure of extensibility by taking $\alpha_{p} = \alpha_r = 1$ and $\alpha_q = -1$,
+and noticing
+\[ \sum \alpha_{\vp} \alpha_{\psi} \P{\vp \wedge \psi} = -\frac 12 < 0. \]
+Thus $\PP \notin \Dp{S_0}$.
+This provides a simple example of how $\Dp{S_0}$
+can impose ``global'' constraints on $\PP$.
+It is well known that there are distributions $\PP : S_0^2 \rightarrow [0, 1]$ which are not in $\Dp{S_0}$
+but which nevertheless have extensions in $\D{S_0^k}$ for $k = \theta\of{n}$, where $S_0^k = S_0 \times S_0 \times \cdots \times S_0$.
+
+Of course, there are also distributions $\PP \in \Dp{S_0}$ which have no extension to $\clS$,
+or even to $\D{S_0^4}$.
+So one must take care when describing such an object as a ``distribution''
+(the expression ``psuedodistribution'' is sometimes used in the literature). %XXX cite
+\end{example}
+
+\newcommand{\SP}{\Sigma_{\PP}}
+In addition to being testable in polynomial time (for example
+by computing the smallest eigenvalue of $\Sigma_{\PP}$),
+this constraint is particularly interesting for the following reason:
+if $\Sigma_{\PP} \geq 0$,
+then there are random variables $A_{\vp}$ such that $\P{\vp \wedge \psi} = \E{A_{\vp} A_{\psi}}$.
+For example, we can take $A$ to be a multivariate normal distribution with covariance
+matrix $\SP$.
+This provides us with a way to understand $\PP$ as a \emph{global} description
+of $S_0$, even though it only assigns probabilities to sentences in $S_0 \times S_0$.
+This is typically the property of interest in constraint satisfaction,
+where this global description can be used to extract a solution to a constraint
+satisfaction problem.
+
+\subsubsection{Entropy and updating}
+
+One special consequence of this global description of distributions in $\Dp{S_0}$
+is that we can use it to obtain a measure of the information content of a $\PP \in \Dp{S_0}$.
+Namely, we can consider the differential entropy of some continuous distribution which has the same
+moments as $\PP$.
+One natural candidate is the Gaussian with covariance matrix $\SP$. This is also
+the maximum achievable variance,
+and it has the very simple form $\log\of{\abs{\SP}}$.
+
+
+%The behavior of a Bayesian with a maximum entropy prior can be understood
+%within the framework of online learning,
+%and we will make explicit use of this representation
+%to try to generalize Bayesian reasoning to the present setting.
+%
+%In online learning theory, we view the learner as playing
+%a game against nature; in each round, the learner chooses their beliefs
+%and then uses those beliefs to play a prediction game.
+%Nature then reveals the truth, and the learner receives a score
+%based on the quality of their predictions.
+%
+%Two typical approaches to this problem are \emph{follow-the-regularized leader}
+%and \emph{mirror descent}, which are closely related and both reproduce Bayesian reasoning
+%in the setting where the learner explicitly represents every possible world.
+%We will focus on follow-the-regularized leader (FTRL) for concreteness.
+%
+%
+%FTRL works by defining a \emph{regularizer} over the space of beliefs (entropy
+%is a typical example), and then choosing its beliefs
+%to maximize the sum of their retrospective performance on the prediction problems
+%so far, plus the value of the regularizer.
+%When the performance on the prediction problems is evaluated using the log score,
+%this reduces precisely to a Bayesian update.
+%However, this formulation continues to make sense when
+%the reasoner's beliefs are represented implicitly,
+%or when there are other constraints on the reasoner's beliefs
+%(for example if they are making predictions about samples from a distribution $D$,
+%and they know what the expectation or variance of $D$ is).
+
+Inspired by the understanding of Bayesian inference
+in learning theory,
+there is a very close connection between notions of entropy
+and Bayesian updating.
+The \emph{relative entropy} (or KL divergence) of one distribution $\PP$ from another $\QQ$
+is given by
+\newcommand{\KL}[2]{D\ofcc{#1}{#2}}
+\[ \KL{\PP}{\QQ} = \sum_{\text{outcomes }x} \P{x} \log{\frac {\P{x}}{\Q{x}}}.\]
+Intuitively, this measures how well $\QQ$ approximates $\PP$.
+
+An equivalent description of the distribution $\Pc{\cdot}{\vp}$
+is as the distribution which assigns probability 1 to $\vp$
+and \emph{minimizes} the KL divergence from $\PP$.
+In fact, in the setting of online learning theory this is the \emph{more}
+natural way to describe a Bayesian update,
+which can be more readily generalized and analyzed.
+So as long as we have an appropriate notion of KL divergence,
+we can define an analog of Bayesian updating.
+%XXX cite learning theory
+
+In fact the KL divergence can be calculated directly from the entropy
+as a Bergman divergence, %XXX cite
+and so an analog of entropy naturally yields
+an analog of the KL divergence.
+In this case, the resulting quantity
+is the KL divergence between the Gaussians with 
+covariance matrices $\SP$ and $\Sigma_{\QQ}$, which is given by:
+\[ \KL{\Sigma_{\PP}}{\Sigma_{\QQ}} = \frac 12 \of{\log \abs{\Sigma_{\QQ}} - \log \abs{\Sigma_{\PP}} + \tr{ \SP \Sigma_{\QQ}^{-1} - I }}. \]
+This quantity is also called the \emph{logdet divergence} between $\SP$ and $\Sigma_{\QQ}$,
+and it has been used successfully for matrix online learning in a number of contexts,
+most notably kernel and metric learning. %XXX citations
+
+Now we would like to define the distribution $\Pc{\cdot}{\vp}$ as the distribution
+in $\Dp{S}$
+which assigns probability 1 to $\vp$
+and minimizes $\KL{\Sigma_{\Pc{\cdot}{\vp}}}{\Sigma_{\PP}}$.
+There is one more subtlety before we can complete our definition.
+If $\PP$ is coherent, then $\SP$ will necessarily not be of full rank
+(for example, if $\vp$ is the negation of an axiom then $\P{\vp \wedge \psi} = 0$
+for every $\psi$, so $\SP$ has a zero row).
+So we will typically have $\log \abs{\SP} = \log \abs{\Sigma_{\QQ}} = -\infty$.
+We can extend the definition of the logdet divergence to these cases as follows:
+let $(u_i, \theta_i)$ be the eigenvectors and eigenvalues of $\SP$,
+and $(v_i, \lambda_i)$ be the eigenvectors and eigenvalues of $\Sigma_{\QQ}$,
+sorted in decreasing order.
+Then we can define
+\[ \KL{\SP}{\Sigma_{\QQ}} = \sum_{i, j}{ \frac {\theta_i}{\lambda_j} u_i \cdot v_j } + \sum_i \log \frac {\theta_i}{\lambda_j} - r\]
+where $r$ is the rank of $\Sigma_{\QQ}$, $\log \frac 00$ is taken to be $0$ by convention in the second sum,
+and $\frac 00 = 0$ in the first sum.
+
+Now for $\PP, \QQ \in \Dp{S}$, define $\KL{\PP}{\QQ} = \KL{\SP}{\Sigma_{\QQ}}$,
+and for $\vp \in S$ define $\Pc{\cdot}{\vp}$ as the distribution which assigns probability $1$ to $\vp$
+and which has minimum KL divergence from $\PP$.
+It is easy to check that this function is concave in the first argument,
+and that it achieves its minimum at $\KL{\QQ}{\QQ} = 0$.
+Hence this minimization is well-defined.
+
+Moreover, we can
+perform convex optimization over $\Dp{S}$.
+Thus we can compute $\Pc{\cdot}{\vp}$ efficiently.
+
+It is easy to verify the following theorem:
+\begin{theorem}
+If $\psi \in S$ and $\P{\psi} = 0$, then $\Pc{\psi}{\vp} = 0$ as well.
+Thus conditioning on a sequence of observations $\vp_i \in S$ results
+in a distribution which assigns probability $1$ to each of them.
+\end{theorem}
+\begin{proof}
+If the range of $\SP$ is not equal to the range of $\Sigma_{\QQ}$,
+then there is some $v$ with $v^T \Sigma_{\QQ} v = 0$
+but $v^T \Sigma_{\QQ} v \neq 0$, so 
+$\KL{\SP}{\Sigma_{\QQ}} = \infty$.
+
+So if $\Sigma_{\PP}$ has a range contained in the subspace with $\PP{\vp} = 0$,
+then $\Sigma_{\Pc{\cdot}{\psi}}$ must as well,
+i.e. we must have $\Pc{\vp}{\psi} = 0$.
+\end{proof}
+
+Unfortunately, though the analogy with learning
+theory suggests that this notion of updating might have desirable
+features, it lacks some of the familiar characteristics of updating.
+For example, $\Pc{\vp}{\psi} \P{\psi} \neq \P{\vp}$ in general.
+It seems very unlikely that it will be the final say on the subject,
+but again we hope primarily to give a sense of how it might even be
+\emph{possible} for a bounded agent to accept Bayesian epistemology
+in full generality.
+Of course, we could also enforce further properties of $\Pc{\cdot}{\psi}$,
+and only perform the minimization of KL divergence over $\PP$'s that satisfied
+those extra properties.
+For example, we could enforce $\Pc{\vp}{\psi} = \frac {\P{\vp \wedge \psi}}{\P{\psi}}$
+whenever $\vp, \psi \in S$.
+
+\subsubsection{Lift and project}
+
+To define $\Dp{S}$, we first extended $\PP$ to $S^2$
+and then imposed a constraint on the extension.
+Similarly, we could extend $\PP$ to $S^{2k}$,
+and consider $\Dp{S^k}$.
+Even if we are only interested in sentences in $S$,
+this extension imposes additional constraints on $\PP$
+and may allow it to capture additional inferences.
+This is the lift and project method.
+The set $\Dp{S^k}$ corresponds to $k$ rounds of the Lasserre hierarchy of relaxations
+for $\D{\clS}$. %XXX cite things here
+This approach allows us to spend more computational resources in exchange
+for a ``more consistent'' assignment of probabilities.
+
+\section{Logical priors}\label{priors}
+
+\subsection{Motivation}
+
+We are interested in understanding and designing agents which
+\emph{make good predictions}.
+Our goal will be to show that if a learner
+can express an assumption,
+then the learner will eventually make predictions
+as well as if it accepted that assumption.
+Since first order logic is an extremely expressive language,
+this implies that our learner can make good predictions
+in a wide variety of situations.
+
+We will typically measure prediction performance by the log score,
+i.e. the logarithm of the probability that a learner assigns to an outcome.
+Given a sequence of observations $\vp_1, \vp_2, \ldots$,
+the total score received by the agent is
+\[ \log\of{\P{\vp_1}} + \log\of{\Pc{\vp_2}{\vp_1}} + \log\of{\Pc{\vp_3}{\vp_1 \wedge \vp_2}} + \cdots \]
+
+This scoring rule has many nice properties and is often used in statistical
+learning theory. %XXX cites?
+For example, it doesn't matter whether we score the \emph{total}
+performance of a learner over a sequence of data, or whether we score
+the learner on \emph{each} prediction and then add up the results.
+
+To construct a distribution which makes ``good'' predictions
+(as measured by the log score),
+we make extensive use of the following simple observation:
+\begin{theorem}\label{learning}
+Let $\vp_1, \vp_2, \ldots$ be a sequence of sentences
+such that $T \vdash \vp_i$ for each $i$,
+and let $\PP$ be any coherent probability distribution.
+Then 
+\[ \sum_{i = 1}^{\infty} \log\of{\Pc{\vp_i}{\vp_1 \wedge \cdots \wedge \vp_{i-1}}} \geq \log\of{\P{T}}. \]
+\end{theorem}
+\begin{proof}
+For every $k$, $T \rightarrow \bigwedge \limits_{i = 1}^{k} \vp_k$.
+Thus
+\[
+\P{T} 
+\leq \P{\bigwedge \limits_{i=1}^k \vp_k}
+= \prod_{i = 1}^k \Pc{\vp_i}{\vp_1 \wedge \cdots \vp_{i-1}}
+\]
+as desired.
+\end{proof}
+
+This theorem says that if we want to be able to predict almost
+as well as if we assumed $T$, it is sufficient
+to assign $T$ a high prior probability.
+Thus our goal will be to define a distribution $\PP$ which 
+simultaneously assigns a reasonably high probability to many theories $T$.
+A probability distribution which assigns a very low (or zero) probability
+to a sentence $\vp$ is said to be \emph{dogmatic}, while a prior
+which avoids this characteristic is said to be non-dogmatic.
+
+\subsection{Parsimony}\label{parsimony}
+
+Unfortunately, it is not possible to assign \emph{all} consistent
+sentences a reasonable probability.
+Indeed, if I supply an uneducated conjecture about the first 100 digits of $\pi$,
+you should assign this conjecture a prior probability which is on the order
+of $10^{-100}$---after all, there are about that many similar
+yet mutually exclusive alternatives.
+So if a formal notion of non-dogmatism is to be satisfiable,
+it needs to avoid judging such low probabilities as dogmatic.
+
+In order to define our prior, we will first introduce a function $\mu : L \rightarrow [0, 1]$
+indicating the least probability which would be reasonable to assign to a sentence $\vp \in L$.
+This gives a measure of how quick we should be to infer $\vp$ given some evidence in its favor,
+i.e. $\mu$ encodes a choice about which explanations should be quickly inferred.
+Our view is that the \emph{simple} explanations are the ones that
+should be quickly learnt;
+we will not provide philosophical justification for this view here,
+but note that the issue is a common topic of discussion in formal epistemology.
+
+First we will provide a formal notion of complexity.
+
+\renewcommand{\k}[1]{\mathcal{K}\of{#1}}
+Define the complexity of a non-negative integer $n$ as $\k{n} = n+1$.\footnote{We've
+made this choice for simplicity, but the notion would be improved
+by taking the complexity of $n$ to be the length of $n$ in some
+more efficient encoding than unary.
+In this case, we would want to change the definitions of $\k{f^k_i\of{t_1, \ldots, t_k}}$
+and $\k{A^k_i\of{t_1, \ldots, t_k}}$ to depend on $k + \k{i}$.}
+Extend $\k{\cdot}$ to terms via:
+\begin{itemize}
+\item $\k{x_i} = 2 + \k{i}$
+\item $\k{c_i} = 2 + \k{i}$
+\item $\k{f^k_i\of{t_1, t_2, \ldots, t_k}} = 1 + \k{k} + \k{i} + \sum_j \k{t_j}$
+\end{itemize}
+Finally, extend $\k{\cdot}$ to formulas via:
+\begin{itemize}
+\item $\k{t_1 = t_2} = \k{t_1 \neq t_2} = 3 + \k{t_1} + \k{t_2}$
+\item $\k{\forall x_i : \vp} = \k{\exists x_i : \vp} = 3 + \k{i} + \k{\vp}$
+\item $\k{A^k_i\of{t_1, t_2, \ldots, t_k}} = \k{\neg A^k_i\of{t_1, t_2, \ldots, t_k}} = 3 + \k{i} + \k{k} + \sum_j \k{t_j}$
+\item $\k{\vp \wedge \psi} = \k{\vp \vee \psi} = 3 + \k{\vp} + \k{\psi}$
+\end{itemize}
+
+Amongst the sentences with complexity $k$, there are families of about $2^k$ mutually
+inconsistent sentences, and so $2^{-\k{k}}$ is the strongest
+lower bound we can give for the probability of $k$ bit sentences
+using their complexity alone.
+
+\both{
+\begin{theorem}
+For every $k$ there are $2^k$ inconsistent
+sentences $\vp_i$ with $\k{\vp_i} = \theta\of{k}$.
+\end{theorem}
+}
+Essentially, we can consider the theory of $k$ bit strings;
+there are $2^k$ distinct models each of which can be pinned down
+by a set of axioms of complexity $\theta\of{k}$.
+The proof is in the appendix.
+
+\later{
+\begin{proof}
+Consider the theory $T_x$ specified by a binary vector $x = x_0 x_1 \cdots x_{k}$,
+defined by the conjunction of the axioms:
+\begin{align*}
+\forall x, y, z, w : &f^2(x, y) = f^2(z, w) \rightarrow x = z \wedge y = w \\
+\forall x, y : &A^1(x) \wedge A^1(y) \rightarrow x = y \\
+&c_0 \neq c_1 \\
+&A^1\of{f^2\of{c_{x_0}, f^2\of{c_{x_1}, \cdots f^2\of{c_{x_{k-1}}, c_{x_k}} \cdots}}}
+\end{align*}
+For simplicity, write $\vp_x$ for the last axiom.
+The first three axioms have complexity $\theta\of{1}$
+since they have no dependence on $k$.
+By induction and the definition of $\k{\cdot}$, we have $\k{\vp\of{x}} = \theta\of{k}$.
+Moreover, it is easy to verify that any $\psi_x$ and $\psi_y$
+are incompatible given the first three axioms. Thus $T_x$
+and $T_y$ are incompatible given $x \neq y$.
+\end{proof}
+}
+
+%
+%First, pick some distribution $\nu$ over non-negative integers.
+%For example, we might take $\nu(i) = \frac 1{(i+1)(i+2)}$.
+%
+%Next, define a distribution $\lambda$ over terms as follows:
+%\begin{itemize}
+%\item $\lambda\of{x_i} = \frac 13 \nu(i)$,
+%\item $\lambda\of{c_i} = \frac 13 \nu(i)$,
+%\item $\lambda\of{f^k_i\of{t_1, t_2, \ldots, t_k}} = \frac 13 2^{-k} \nu(i) \lambda\of{t_1} \lambda\of{t_2} \cdots \lambda\of{t_k}$,
+%\end{itemize}
+%It is straightforward to verify that $\lambda$ is a probability distribution.
+%
+%Finally, define $\mu$ inductively as follows:
+%\begin{itemize}
+%\item $\mu\of{\forall x_i : \vp} = \mu\of{\exists x_i : \vp} = \frac 18 \nu(i) \mu\of{\vp}$,
+%\item $\mu\of{\vp \wedge \psi} = \mu\of{\vp \vee \psi} = \frac 18 \mu\of{\vp} \mu \of{\psi}$,
+%\item $\mu\of{t_1 = t_2} = \mu\of{t_1 \neq t_2} = \frac 18 \lambda(t_1) \lambda(t_2)$,
+%\item $\mu\of{A^k_i\of{t_1, t_2, \ldots, t_k}} = 
+%\mu\of{\neg A^k_i\of{t_1, t_2, \ldots, t_k}} = \frac 18 2^{-k} \nu(i) \lambda\of{t_1} \lambda\of{t_2} \cdots \lambda\of{t_k}$.
+%\end{itemize}
+%It is straightforward to verify that $\mu$ is a probability distribution.
+%
+%We can also verify by an easy induction that $\muv = \mu\of{\neg \vp}$.
+%
+%We need to take some care to handle sentences which treat variables inappropriately;
+%for example, we can assume that any unquantified variable $x_i$ is implicitly universally quantified,
+%and allow nested quantifiers to bind the same variable (treating the inner one as taking precedence,
+%as is typical).
+%
+In light of this, we will take $\mu\of{\vp} = 2^{-\k{\vp}}$.
+It is straightforward to verify that $\sum_{\vp} \muv = 1$\footnote{The sum
+here is taken over formulas, though we could consider each formula as a sentence
+by considering the unbound variables as implicitly universally quantified},
+and this will be important in the sequel.
+
+
+\subsection{A simple prior}
+
+A number of very direct approaches to this problem have been proposed,
+each of which aims to ensure $\P{\vp} \geq \mu\of{\vp}$ for some distribution $\muv$
+over sentences.
+For example, Hutter et al. define a prior by choosing a model $\M_{\vp}$ of each sentence $\vp$,
+and then setting $\P{\psi} = \mu\of{\b{\vp : \M_{\vp} \models \psi}}$.
+This approach is satisfactory, but rests on arbitrary choices
+and is needlessly computationally inefficient in the finite case.
+They also have a philosophically different motivation and so restrict attention to separable models,
+thereby obtaining a distribution which cannot even be approximated
+with a halting oracle (they are also not concerned with the \emph{speed} of learning).
+
+Similarly, Demski has proposed generating a compete theory $T$,
+starting from $T_0 = \emptyset$,
+iteratively forming $T_{i+1}$ from $T_i$
+by adjoining a random sentence $\vp$ consistent with $T_i$
+(sampled with probability proportional to $\muv$).
+This proposal appears to have some theoretically desirable properties
+and to be less arbitrary,
+but does not lead to tractable algorithms in the finite case.
+
+Our approach is to simply consider the (convex)
+set of coherent distributions $\PP$
+and to optimize an appropriate convex function over this set.
+This more closely mirrors methods which have proven
+to be practically successful, in particular maximum-entropy priors,
+and is extremely straightforward to generalize to the finite case.
+Our function will be chosen to ensure that an optimum is
+sufficiently far from any boundary,
+i.e. such that $\P{\vp}$ is reasonably large for each $\vp$.
+
+For any $\PP : L \rightarrow [0, 1]$, define
+\[\reg{\PP} = \sum_{\vp \in L} \mu\of{\vp} \log\of{\P{\vp}}.\]
+We would like to take $\PP$ to be the coherent probability
+distribution which maximizes $\reg{\PP}$.
+
+Unfortunately, for any coherent $\PP$ we will have $\regpre{\PP} = - \infty$.
+This is because some $\vp$ are contradictions in first order logic,
+and so will be assigned probability $0$ by $\PP$.
+We could exclude these sentences, 
+and in the case of bounded reasoners discussed below this will be adequate.
+But this doesn't fix the problem
+in the case of unbounded reasoners;
+if $\mu$ has infinite entropy it might still be the case that all $\PP$
+have $\reg{\PP} = - \infty$.
+
+Nevertheless, we can compare different candidates $\PP$ to see which are better or worse.
+Namely, for any $\PP$ and $\QQ$, consider the sum:
+\[ \relreg{\PP}{\QQ} 
+= \reg{\PP} - \reg{\QQ} = \sum_{\vp \in L} \mu\of{\vp} \log\of{\frac{\P{\vp}}{\Q{\vp}}} \]
+where we consider $\log\of{\frac 00} = 0$.
+We say that $\PP > \QQ$ if the set of negative terms
+in this sum is absolutely convergent,
+and sums to less than the set of positive terms.
+If neither $\PP > \QQ$ nor $\QQ > \PP$,
+we say that $\PP$ and $\QQ$ are incomparable.
+The key observation is that there is a unique maximal $\PP$,
+and that $\PP > \QQ$ for all $\QQ \neq \PP$.
+
+\both{
+\begin{theorem}\label{optimality} There exists a coherent distribution $\PP$ such that
+for every coherent distribution $\QQ$, $\PP \geq \QQ$.
+\end{theorem}
+}
+\later{
+\begin{proof}
+
+Observe that $\reg{\PP}$
+is continuous in the product topology and that the space of coherent
+distributions is a compact set.
+Thus if $\PP_1 < \PP_2 < \cdots$ (or in general
+if the $\PP_i$ form a chain), 
+then $\PP = \lim_i \PP_i$ (relative to some ultrafilter) satisfies
+$\reg{\PP} > \reg{\PP_i}$ for all $i$.
+
+Thus we can find a maximal $\PP$.
+For any $\PP' \neq \PP$, we must have either $\PP > \PP'$
+or $\PP$ and $\PP'$ are incompatible.
+We will show that if $\PP'$ is incomparable with $\PP$, then $\QQ = \frac 12 \of {\PP + \PP'}$ 
+dominates $\PP$, contradicting maximality of $\PP$.
+This implies that $\PP$ satisfies the conditions of the theorem.
+
+To see that $\QQ > \PP$, let $S$ be the set of sentences where $\PP > \PP'$,
+and let $T$ be the set of sentences where $\PP' \geq \PP$.
+Then
+\begin{align*}
+\relreg{\QQ}{\PP} 
+&= \sum_{\vp \in L} \mu\of{\vp} \of{\log\of{\Q{\vp}} - \log\of{\P{\vp}}} \\
+&= \sum_{\vp \in S} \mu\of{\vp} \of{\log\of{\Q{\vp}} - \log\of{\P{\vp}}} 
++ \sum_{\vp \in T} \mu\of{\vp} \of{\log\of{\Q{\vp}} - \log\of{\P{\vp}}} \\
+&\geq \sum_{\vp \in S} \mu\of{\vp} \of{\log\of{\Q{\vp}} - \log\of{\P{\vp}}} 
++ \sum_{\vp \in T}\mu\of{\vp} \of{\log\of{\frac {\P{\vp}}2} - \log\of{\P{\vp}}} \\
+&\geq \sum_{\vp \in S}\mu\of{\vp} \of{\log\of{\Q{\vp}} - \log\of{\P{\vp}}} -1\\
+&= +\infty > 0
+\end{align*}
+as desired.
+\end{proof}
+}
+
+\newcommand{\regsym}{\Psi}
+We show in the appendix
+that it is possible to compute $\PP$
+using a halting oracle.
+The key observation is that we can use a halting oracle to optimize $\regsym$
+over the set of restrictions of coherent $\PP$ to any $S \subset L$.
+As $S \rightarrow L$, these approximations converge to the global optimum
+very quickly, and so we can approximate the global optimum
+by taking a large sets $S$.
+
+\later{
+\subsection{Computing $\PP$}
+
+In this section we show how to compute the distribution $\PP$ defined in section~\ref{priors}
+using a halting oracle.
+
+The first observation is that if $S$ is a finite set of sentences,
+then a distribution $\PP : S \rightarrow [0, 1]$ can be extended to a coherent probability
+distribution if and only if $\PP$ satisfies the coherence axioms when restricted to $S$
+and assigns probability 1 to each theorem of PA (this is a straightforward
+modification of theorem~\ref{distribution}).
+Using a halting oracle, we can straightforwardly test whether a given $\PP : S \rightarrow [0, 1]$
+satisfies these properties.
+
+Given a finite set $S$, we can restrict our potential function $\reg{\PP}$
+by considering
+\[ \regs{\PP} = \sum_{\vp \in S}\mu\of{\vp} \log\of{\P{\vp}}. \]
+For any $S$, let $\PP_S : S \rightarrow [0, 1]$ be the coherent
+distribution maximizing $\regs{\PP_S}$.
+We will show that for any $\vp, \epsilon$ we can find a set $S$
+such that $\abs{\P{\vp} - \PP_S\of{\vp}} \leq \epsilon$;
+this implies that we can approximate $\PP$ simply by computing
+$\PP_S$ for a sufficiently large $S$.
+
+\newcommand{\muoS}{\mu\of{\overline{S}}}
+\newcommand{\oPPS}{\overline{\PP_S}}
+Let $\mu\of{S} = \sum_{\vp \in S} \mu\of{\vp}$,
+and $\muoS = \sum_{\vp \in L \backslash S} \mu\of{\vp}$.
+To measure the distance between two distributions $\PP$ and $\QQ$
+over the set $S$, we define
+\[ \sPQ = \sum_{\vp \in S} \muv \of{\P{\vp} - \Q{\vp}}^2. \]
+
+\begin{theorem}\label{extension}
+For any coherent $\PP_S : S \rightarrow [0, 1]$, any $\PP : L \rightarrow [0, 1]$, and any $\epsilon > 0$,
+there is a $\oPPS : L \rightarrow [0, 1]$ such that:
+\begin{enumerate}
+\item For each $\vp \in S$, $\abs{\oPPS\of{\vp} - \PP_S\of{\vp}} \leq \epsilon$.
+\item $\relreg{\oPPS}{\PP} \geq \regs{\PP_S} - \regs{\PP} - \epsilon + \log\of{\epsilon} \muoS$.
+\end{enumerate}
+In particular, taking $\epsilon = \log{\muoS}$, we have
+\[ \relreg{\oPPS}{\PP} \geq \regs{\PP_S} - \regs{\PP} - \muoS \of{\log{\muoS} + 1}. \]
+\end{theorem}
+\begin{proof}
+Let $\QQ$ be any extension of $\PP_S$ to a coherent probability distribution.
+Define
+\[ \oPPS = (1 - \epsilon) \QQ + \epsilon \PP. \]
+Then it is trivial to verify that condition (1) above holds.
+
+Moreover,
+\begin{align*}
+\relreg{\oPPS}{\PP}
+&= \sum_{\vp} \mu\of{\vp} \of{\log\of{\oPPS\of{\vp}} - \log{\P{\vp}}} \\
+&= \sum_{\vp\in S} \mu\of{\vp} \of{\log\of{\oPPS\of{\vp}} - \log{\P{\vp}}} 
++ \sum_{\vp\in \overline{S}} \mu\of{\vp} \of{\log\of{\oPPS\of{\vp}} - \log{\P{\vp}}} \\
+&\geq \sum_{\vp\in S} \mu\of{\vp} \of{\log\of{(1 - \epsilon) \PP_S \of{\vp}} - \log{\P{\vp}}} 
++ \sum_{\vp\in \overline{S}} \mu\of{\vp} \of{\log\of{\epsilon \P{\vp}} - \log{\P{\vp}}}  \\
+&= \sum_{\vp\in S} \mu\of{\vp} \of{\log\of{1 - \epsilon} + \log\of{\PP_S \of{\vp}} - \log{\P{\vp}}}
++ \sum_{\vp\in \overline{S}} \mu\of{\vp} \of{\log\of{\epsilon} + \log\of{\P{\vp}} - \log{\P{\vp}}}\\
+&= \mu\of{S} \log\of{1 - \epsilon} + \regs{\PP_S} - \regs{\PP} + \muoS \log\epsilon \\
+&\geq - \epsilon + \regs{\PP_S} - \regs{\PP} + \muoS \log\epsilon
+\end{align*}
+as desired.
+\end{proof}
+
+\begin{theorem}[Strong concavity]\label{strong-concavity}
+For any $\PP, \QQ : S \rightarrow [0, 1]$,
+\[ \regs{\delta \PP + (1 - \delta) \QQ} \geq \delta \regs{\PP} + (1 - \delta) \regs{\QQ}
++ \frac 12 \delta (1 - \delta) \sum_{\vp \in S} \mu\of{\vp} \of{\P{\vp} - \QQ\of{\vp}}^2. \]
+\end{theorem}
+\begin{proof}
+The key ingredient is the strong concavity of the logarithm,
+which can be deduced directly from the fact that its second derivative is $- \frac 1{x^2} \leq -1$:
+\[ \log\of{\delta x + (1 - \delta) y} \geq \delta \log{x} + (1 - \delta) \log{y} + \frac 12 \delta (1 - \delta) (x - y)^2. \]
+Using this inequality, we can compute (where all sums are over $S$):
+\begin{align*}
+\regs{\delta \PP + (1 - \delta) \QQ}
+&= \sum_{\vp} { \mu\of{\vp} \log\of{\delta \P{\vp} +  (1 - \delta) \Q{\vp} }} \\
+&\geq \sum_{\vp} { \mu\of{\vp} \of{\delta \log\of{\P{\vp}} + (1 - \delta) \log{\Q{\vp}}}} + \frac 12 \delta ( 1 - \delta) \of{\P{\vp} - \Q{\vp}}^2 \\
+&= \delta \regs{\PP} + (1 - \delta) \regs{\QQ} + \frac 12 \delta (1 - \delta) \sum_{\vp} \of{\P{\vp} - \Q{\vp}}^2,
+\end{align*}
+as desired.
+\end{proof}
+\begin{corollary}\label{smoothness}
+If $\PP_S$ is the coherent distribution maximizing $\regs{\PP_S}$,
+then for any coherent $\PP : S \rightarrow [0, 1]$:
+\[ \regs{\PP} \leq \regs{\PP_S} - \frac 12 \sPQ \]
+\end{corollary}
+\begin{proof}
+Consider the distributions $(1 - \delta) \PP_S + \delta \PP$.
+By theorem~\ref{strong-concavity}:
+\begin{align*}
+\regs{(1 - \delta) \PP_S + \delta \PP}
+&\geq (1 - \delta) \regs{\PP_S} + \delta \regs{\PP} + \delta (1 - \delta) \sPQ \\
+&= \regs{\PP_S} + \delta \of{\regs{\PP} - \regs{\PP_S} + \sPQ} + \Of{\delta^2}
+\end{align*}
+And taking $\delta \rightarrow 0$, the corollary follows
+by the optimality of $\PP_S$.
+\end{proof}
+
+Putting these two theorems together, we conclude:
+\begin{theorem}
+If $\PP_S$ is the coherent distribution maximizing $\regs{\PP_S}$
+and $\PP$ is the coherent distribution maximizing $\reg{\PP}$
+in the sense of Theorem~\ref{optimality},
+then for any $\vp \in S$ we have
+\[ \abs{\PP_S\of{\vp} - \PP\of{\vp}} \leq \sqrt{\muv \muoS \log{\frac 2{\muoS}}} \]
+\end{theorem}
+\begin{proof}
+By Theorem~\ref{extension} we can find an extension $\oPPS$ such that
+\[ 0 \geq \relreg{\oPPS}{\PP} \geq \regs{\PP_S} - \regs{\PP} - \muoS \log{\frac 2{\muoS}} \]
+Then applying corollary~\ref{smoothness}, together with the observation
+\[ \sPQ \geq \mu\of{\vp} \of{\P{\vp} - \Q{\vp}}^2 \]
+yields the desired result.
+\end{proof}
+}
+It seems unlikely this is the final say on a choice
+of logical priors,
+but it is simple, does the job,
+and illustrates a general approach towards
+constructing logical priors which
+helps the close the gap between this setting
+and contemporary work in machine learning.
+This approach also suggests a path forward
+for several of the open problems we raise
+in section~\ref{further-work}.
+
+\subsection{The Gaifman condition}
+
+A common coherence condition for probability distributions
+is the so-called Gaifman condition:
+\begin{definition}
+$\PP$ satisfies the \emph{Gaifman condition} if for any $\vp$,
+\[ \P{\forall n : \vp\of{n}} = \inf\limits_{k} \P{\vp\of{0} \wedge \cdots \wedge \vp\of{k}}. \]
+\end{definition}
+This is an intuitive condition for a probability distribution $\PP$
+which we take to represesent the \emph{truth} of the matter,
+but it is not a natural condition for a subjective probability distribution.
+
+The distribution we have described does not satisfy the Gaifman condition.
+This is inevitable: the Gaifman condition is \emph{stronger}
+than $\omega$-completeness, which cannot be achieved by any definable
+distribution.
+
+\begin{theorem}
+For any definable, coherent distribution $\PP$ over $L$
+which assigns non-zero probability to Q,
+there is a formula $\vp\of{n}$
+such that
+\[ \P{\forall n : \vp\of{n}} \neq \lim\limits_{k \rightarrow \infty} \P{\vp\of{0} \wedge \cdots \wedge \vp\of{k}}\]
+In particular, this holds for any $\PP$ which lies in the arithmetical hierarchy.
+\end{theorem}
+\begin{proof}
+Suppose we have any $\PP$
+which satisfies the Gaifman condition.
+Consider the set $S$ of sentences $\vp$
+such that $\Pc{\vp}{\RQ} = 1$.
+If $\PP$ is definable, so is this set.
+We claim that this is the set of all true
+statements about the integers, which is not definable.
+
+Note that all theorems of $\RQ$,
+and hence all $\Sigma_1$ sentences that are true of the integers, are necessarily in $S$
+by coherence.
+
+By applying the Gaifman condition to the sentences $\psi\of{n} = \vp\of{n} \wedge \RQ$,
+we see that if $\Pc{\vp\of{k}}{\RQ} = 1$ for each $k$, then $\Pc{\forall n : \vp\of{n}}{\RQ} = 1$.
+Thus all $\Pi_2$ sentences that are true of the integers are necessarily in $S$.
+Continuing by induction we find that all $\Sigma_k$ sentences that are true
+of the integers are in $S$, and hence $S$ contains all true sentences,
+contradicting its definability.
+\end{proof}
+
+This impossibility result can be considerably expanded, to deal with narrow classes
+of $\vp$ (in fact it has been proved even for $\Pi_1$ sentences, at least for distributions
+which don't assign probability $0$ to true $\Sigma_2$ sentences) %XXX cite swain and demski
+or to deal with weaker convergence conditions.
+
+Moreover, our results on the learnability of universal generalizations
+seem like an acceptable practical substitute---our algorithm
+predicts \emph{as well as if} it had learned the universal generalization
+in the long run.
+
+\subsection{Scaling down}
+
+Extending the prior we have described to the finite case requires essentially no modification.
+That is, for any set $S$, we can define a prior $\PP_S : S \rightarrow [0, 1]$ as the locally coherent
+map which maximizes
+\[ \regs{\PP_S} = \sum_{\vp \in S} \muv \log{\PP_S\of{\vp}}. \]
+Because the set of locally coherent distributions is defined by a polynomial
+list of linear inequalities,
+we can compute this $\PP_S$ in time polynomial in the size of $S$.
+
+Using standard techniques for semidefinite programming,
+we can similarly find the $\PP_S$ which is sum-of-squares coherent
+and maximizes this regularizer.
+Note that in this setting we need not be concerned with convergence issues,
+as long as we excluded sentences which are contradictions from the sum
+(since those sentences will necessarily receive probability $0$).
+
+%\subsection{Formally defining $\PP$}
+%We have argued that $\PP$ can be approximated
+%by a certain algorithm using a halting oracle.
+%For the purpose of actually approximating $\PP$ the definition given
+%in the last section is satisfactory.
+%But for the purposes of reasoning about $\PP$ from within a weak
+%system, there is a further subtlety.
+%
+%In particular, a weak system may not be able to guarantee that there are
+%\emph{any} coherent distributions $\PP$,
+%and so the behavior of the algorithm in this case may be relevant
+%to its reasoning.
+%
+%So we will reserve a special symbol $\bot$ as a possible output of $\PP$.
+%If there are no coherent distributions $\PP$, then the algorithm
+%we are defining will simply output $\bot$ on any input $\vp$.
+%Similarly, if we query $\Pc{\vp}{\psi}$ for some $\psi$
+%with $\P{\psi} = 0$, we will have the algorithm output $\bot$.
+%
+%Although it won't play a role in our exposition, a more appropriate regularizer in this case
+%\newcommand{\regsym}{\Psi}
+%\newcommand{\regp}[1]{\regsym^+\of{#1}}
+%might be the expression
+%\[ \regp{\PP} = \tr{\mu \log \SP} \]
+%where $\log$ is the matrix logarithm, $\mu$ is a diagonal matrix
+%%with entries $\muv$,
+%and $\SP$ is the matrix defined in section~\ref{sos}.
+%This regularizer penalizes near-violations of the sum-of-squares
+%constraint in addition to near-violations of the non-negativity constraint.
+%
+%It is straightforward to verify that this regularizer also enforces $\P{\vp} \geq \muv$:
+%\begin{theorem}
+%If $\PP$ maximizes $\regp{\PP}$, then $\P{\vp} \geq \muv$.
+%\end{theorem}
+%\begin{proof}
+%It is easy to verify by Jensen's inequality that each digaonal
+%entry of $\log \SP$ is upper-bounded by the logarithm of the corresponding
+%entry of $\SP$.
+%So if $\P{\vp} \leq \muv$, then $\tr{\mu \log \SP}$ has a term $\mu\of{\vp} \log \muv$.
+%(NOT yet done)
+%\end{proof}
+%
+%In fact, It seems likely that a similar regularizer
+%will be more appropriate in the infinite case as well once it is fully understood,
+%despite the absence of explicit positive-semidefiniteness conditions.
+
+\subsection{Beyond non-dogmatism}
+
+In reality ``ignorance'' means more than non-dogmatism,
+and we would like our prior to satisfy further
+intuitive properties.
+For example, when a hypothesis \emph{isn't}
+in conflict with every other conceivable hypothesis,
+we should be able to assign it a higher probability than $\muv$.
+Statements which have little logical bearing on each other
+ought to have little mutual information
+(and if two statements \emph{are} logically related,
+conditioning on a natural interpolant ought to reduce
+the mutual information between them).
+And so on.
+
+It is easy to check that none of the distributions
+that have been proposed so far (ours included) matches
+all or even many of our strong intuitions about an ignorance
+prior.
+The recent proposal of Abram Demski appears to come closest; %XXX cite
+especially interesting is its reproduction of an intuitive
+conditional independence structure.
+Unfortunately, as mentioned, his proposal is fundamentally
+prohibitively computationally expensive.
+We feel that approaches based on entropy maximization
+are particularly likely to have such desirable characteristics,
+and we have presented our solution largely to provide an
+indication of how a future weighted entropy-maximization approach might work.
+
+\section{Learning mathematical facts}\label{math}
+
+We have described a prior over mathematical states of affairs,
+but haven't yet said much (aside implicitly in theorem~\ref{learning}) about what happens when 
+we use this prior to actually reason about mathematics.
+In this section we will introduce a model for the process of mathematical reasoning,
+and then make some observations about the results of such reasoning.
+
+All of the discussion in this section is intended to apply equally
+to any of the priors discussed in sections~\ref{priors} and \ref{coherence}.
+But the arguments are easiest to make and the conclusions are most intuitively plausible
+in the setting of section~\ref{bounded-qr},
+and so for concreteness the reader may want to keep this example in mind.
+(Extending some of the results to the setting of section~\ref{sos} would require
+proving some further facts about the conditioning process proposed there.)
+
+\subsection{Modeling reasoning}
+
+In this section we will turn our attention to \emph{passive} reasoning.
+That is, we consider a reasoner who is exposed
+to a sequence of \emph{observations}
+$\vp_0, \vp_1, \ldots$,
+and conditions on each one in turn.
+We will be interested in qualitative statements about what an agent
+would come to believe after observing ``enough'' statements of a certain type.
+The implicit analogy with human reasoning is normally clear,
+though we are far from being able to pin down the quantitative
+aspects of the situation (nor even model the situation for humans
+well enough that such quantitative statements would be meaningful).
+
+The sentences $\vp_0, \vp_1, \ldots$ (as well as the agent's beliefs)
+don't have any free variables, but they can make
+arbitrary use of the symbols $A_i^k$, $f_i^k$, $c_i^k$.
+These symbols might be used to encode information about
+sense experiences (for example $f_0^1(t)$ might return the data
+perceived by the agent at time $t$, so that the agent
+continuously updates on expressions of the form $f_0^1(t) = s_t$)  or to present some mathematical
+facts to the agent (for example, $f_0^1(x)$ might return the successor of $x$,
+and the agent might update on facts like $\exists x : \forall y : y \neq x \rightarrow \exists z : z = f_0^1(y)$)
+or for some other purpose.
+
+When we say that an agent would ``come to believe $\vp$,''
+all we really mean is that it would come to make predictions
+as well as if it had come to believe $\vp$. 
+For example,
+if we say that an agent has ``come to believe Peano arithmetic'' we do not
+mean to suggest that it believes the literal axioms themselves, because
+we generally have no way to rule out the possibility that (for example) the agent
+has assigned different interpretations to the symbols (or that it has learned a more
+powerful theory which can interpret Peano arithmetic).
+All we mean to say is that the agent has formed \emph{some} internal model
+of the situation which allows them to make predictions as well as if they
+believed Peano arithmetic, in the sense of theorem~\ref{learning}.
+
+This entire section considers an ``open loop:''
+the agent's beliefs have no effect on the observations it receives.
+Realistic reasoning, mathematical or otherwise, often involves interaction
+between a learner and an environment
+(indeed, as we discuss in section~\ref{external-memory}, even events
+within a single mind might be best modeled as interactions between e.g.
+a goal-oriented agent and a memory subsystem which it can consult as a resource).
+We will turn our attention to these more complex cases
+in section~\ref{interaction}.
+Many of the examples in this section have greater practical relevance
+once we consider interaction.
+
+\subsection{Learning with unbounded resources}
+
+The examples in this section apply both to finite agents
+and to infinite agents with globally coherent beliefs.
+Subsequent sections will focus on unique characteristics
+of learning with bounded resources,
+which is of greater interest primarily because of the analogy
+with human reasoning.
+We will focus on learning arithmetic,
+under varying conditions, only for simplicity of presenetation..
+
+\subsubsection{Learning arithmetic}
+
+In a very simple case, a learner might simply be told true facts about arithmetic,
+where $+, *, 0, S$ are assigned function and constant symbols
+from $L$.
+For example, the reasoner might condition on many facts of the form
+\[ SSS0 + SS0 = SSSSS0. \]
+
+In this case, by theorem~\ref{learning} we can guarantee
+that the agent will eventually make predictions as well as if it
+knew the definitions of $+, *, 0, S$.
+
+\subsubsection{Learning numerals}
+
+We can imagine a more realistic task, in which the agent
+is still given true arithmetic facts,
+but they now involve some unidentified constant symbols $c_i$.
+For example, the agent might be told:
+\[ c_2 * c_3 = c_5, \]
+or so on.
+We imagine that there is some real correspondence between the $c_i$
+and integers.
+The question is: can the learner simultaneously learn this correspondence and arithmetic?
+
+The answer is essentially that the learner can if and only if they receive
+enough information to determine the correspondence in principle.
+That is, consider the theory $T'$
+which includes not only the axioms of arithmetic but also
+axioms pinning down the $c_i$.
+For example, we might have $T' \vdash c_1 = S 0, c_2 = S c_1, c_3 = c_2 * (c_2 *c_2 + c_1)$,
+in addition to the axioms of arithmetic.
+The complexity of this theory (in the sense of $\k{T'}$ defined in section~\ref{parsimony})
+is roughly $\sum_i \log\of{c_i} + \k{\PA}$.
+So in the long run, the learner needs to get about $\log\of{c_i}$
+predictions wrong about each $c_i$ before it has pinned down its value
+(which is necessary information-theoretically),
+and it can do this in parallel with learning the definition of $+$ and $*$.
+
+\subsubsection{Arithmetic as an explanation}
+
+In the cases we have considered so far, an agent has inferred the laws
+of arithmetic to account for observations
+about the objects of arithmetic, i.e. about the truth
+of arithmetic facts.
+Much more interesting is the case in which an agent
+infers mathematical structure to explain not-obviously-mathematical phenomena.
+
+For simplicity, we'll consider an agent which already believes
+axioms which allow it to reason about binary strings
+(for example, it has learned an axiomatic characterization
+of string concatenation and string equality).
+
+Suppose our agent is given observations of the form $f\of{x_0x_1\cdots x_k} = y_0y_1 \cdots y_k$.
+The rule $f$ may be a complicated one which the agent cannot hope to learn exactly.
+For example, this would occur if $f$ was a computation which used more memory
+than the agent could represent.
+Or, $f$ might simply be stochastic.
+In either case, the learner can discover structure in the values of $f$
+which made prediction easier.
+Representing this structure might require introducing arithmetic as an abstraction.
+This is the route by which we suggest that a realistic learner could come
+to believe the axioms of arithmetic.
+
+For example, suppose that whenever $f\of{x} = y$, 
+we have $\sum i x_i = \sum i y_i$.
+If the learner was able to represent this fact
+and condition on it, the probability they assigned
+to the true judgments of the form $f\of{x} = y$
+would be (roughly) $k^2$ times higher, a significant advantage.
+But formalizing this constraint without the use of arithmetic is a non-trivial challenge.
+
+We cannot rule out the possibility that $\PP$ would find some clever
+alternative representation of this constraint,
+but we can show that in general it will find one way or another
+to make predictions \emph{as well as if} it had learned this constraint.
+
+Moreover, if an agent is tasked with learning \emph{many} such relationships,
+which can be concisely expressed within a single theory $T$,
+then the \emph{total} loss on all of those prediction problems is given
+by $\k{T}$.
+This suggests that if there is a mathematical theory which has
+explanatory power in many domains,
+the agent will either come to believe it
+or come to find an equivalently powerful
+method for making predictions.
+
+\subsection{Learning with bounded resources} 
+
+In the previous sections we have focused on cases
+where an agent infers arithmetic because
+the agent's observations are \emph{in fact} constrained by arithmetic.
+In general we are interested in a more subtle phenomenon,
+which emerges when we consider bounded reasoners.
+
+For example, consider a human reasoner who already accepts
+the axioms of Peano Arithmetic, and is concerned exclusively
+with statements whose truth or falsity will be determined
+in a finite amount of time---ie., which might actually affect their experiences.
+In particular, every arithmetical statement of material interest to humans
+involves only bounded quantifiers.
+Moreover, every mathematical observation that humans ever make also
+contains only bounded quantifiers---that a particular theorem has a proof
+of at most so many lines,
+that a particular computation returns a particular value after a particular amount of time,
+and so on.
+Neglecting uncertainty about physics, we imagine that an account of all true
+$\Delta^0_0$ sentences would allow us to make any physical prediction
+whose truth or falsity can be determined by physically possible operations
+in finite time
+(this is, in essence, the Church-Turing hypothesis).
+
+All of the facts of interest to this human, or which this human can observe,
+are already determined by her belief in the axioms of Peano arithmetic.
+So in what sense can any of these observations shed light on more complicated claims?
+On the existence of infinities, or the truth of $\Sigma^0_2$ sentences?
+
+We suggest two possible routes, and give examples of each in the sequel:
+\begin{enumerate}
+\item First, a theory concerning infinite objects or complex axioms
+might be a simple explanation for certain finite data.
+For example, the existence of a ``set of all natural numbers''
+may be a simpler explanation, at least to a certain way of thinking,
+than the axiom schema of induction.
+The real existence of a continuum might be a simpler
+explanation for our physical observations
+than the existence of a computation which approximates
+the solutions of certain equations on discrete approximations to a continuum.
+
+In this case a reasoner using the approach we have described
+might discriminate between theories with no testable distinctions
+on the basis of simplicity, and the theories that concern themselves
+with finite objects need not win.
+
+\item Much more fundamentally, although all truths about finite
+objects might be determined by the axioms of Robinson Arithmetic
+the implications might be too computationally expensive to examine.
+A theory which simply explains many observations which would otherwise
+require laborious computation may be considered to be confirmed
+by those observations.
+\end{enumerate}
+
+%XXX clarify that we are using finite agent, that $S$ is the set of sentences
+%XXX we care about etc.
+%XXX at some point, clarify that $S$ is constant.
+
+\subsection{Computational expedience}
+
+%XXX discuss how we might fear that we will be stymied, and never get anything beyond definitions
+%XXX point out that for an unbounded agent only observing finite agents, that's the end of the line
+%XXX take this opportunity to discuss the paradox of ignorance
+
+\subsubsection{Generalization}
+
+Consider a learner which knows Robinson arithmetic,
+and has made some observations of an unknown function $f$.
+It has inferred that $f(0) = 1$ and in general $f( S x) = 2 f(x)$, i.e. that $f(x) = 2^x$.
+(We'll write $2^x$ for $f(x)$ from here on out.)
+
+Suppose the agent is now asked to predict whether $2^y 2^x = 2^x 2^y$ for some
+large values of $x$ and $y$.
+In some cases the agent can derive this equality using sentences within $S$,
+simply by applying the inductive definitions of exponentiation and multiplication
+until each side has been reduced to a numeral.
+In these cases the agent will clearly assign probability 1 to $2^y 2^x = 2^x 2^y$.
+But in general the intermediate steps need not lie in $S$,
+because they involve very large numbers.
+
+Of course, if the agent knew the generalization
+that $\forall a, b : a b = b a$, 
+it could deduce as a special case that $2^y 2^x = 2^x 2^y$.
+For each $x$ and $y$, $2^y 2^x = 2^x 2^y$ follows from the axioms of Robinson arithmetic.
+Nevertheless, a bounded agent who believed Robinson arithmetic
+might not be able to deduce the fact, and so might find the generalization useful.
+
+However we can reason identically as before to show that an agent
+will quickly \emph{learn} this generalization: $\P{\forall a, b: ab = ba}$
+is lower-bounded by the complexity of the assertion, and so after
+observing many consequences which it cannot deduce without the generalization,
+eventually the learner will start predicting those consequences correctly
+(very likely by assigning high probability to $ab = ba$ itself).
+
+But suppose this game continues,
+and the learner is now asked to determine whether $2^{x+y} = 2^x 2^y$
+for some large integers $x$ and $y$ (for example, $x = 2^a$ and $y = 2^b$).
+Again, the learner cannot deduce this fact directly, but with enough examples
+will come to believe the universal generalization.
+
+It may seem as though these examples are slightly artificial because they rely on such large
+integers.
+In fact the large sizes of the numbers involved is an artifact of an arithmetic encoding
+(which we have chosen only to make the examples simple).
+In a more realistic application, rather than very large numbers
+we might have modestly sized objects, such that the combinatorial
+explosion keeps the objects from being amenable to reasoning about directly.
+A typical case might be one in which an agent reasons about the result
+of a brute force search, where the brute force
+search covers more items than those the agent can reason about directly.
+
+Another realistic class of examples might occur when the agent
+is reasoning about whether some object $x$ has some special \emph{physical}
+significance---for example, ``the number I've just written down on a sheet of paper''---rather
+than having some special mathematical significance.
+This could simply be represented by an additional predicate $A$, rather than requiring
+any new machinery to cope with physical facts.
+We will explore this setting in the section~\ref{external-memory} below.
+
+\subsubsection{Induction}
+
+In the last section we described why an agent might
+infer $\forall a, b: ab = ba$
+or $\forall x, y : 2^{x+y} = 2^x 2^y$ from observations
+about finite objects.
+And of course there could be a long litany
+of such generalizations
+which might be inferred for the sake of computational expedience.
+Inferring such a long list of computational shortcuts
+is more efficient than simply guessing about the result of individual computations.
+But there is a still more efficient approach.
+
+If the agent assumes the axiom of induction, then it would immediately conclude
+that both of these assertions are true in general (along with many more),
+since they are both easy theorems of PA.\footnote{The
+axiom of induction is not itself a single axiom, but rather an axiom schema.
+The system we have described cannot learn an axiom schema in a straightforward way,
+but this is primarily a technical obstruction.
+We can work with any finitely axiomatizable extension of PA,
+such as NBG set theory, and conclude the same results.}
+Thus after observing many such generalizations,
+the agent would come to infer induction (or at least,
+it would come to make subsequent generalizations \emph{as well as if}
+it had learned induction).
+
+\subsubsection{And beyond}
+
+Since few natural statements are independent of Peano arithmetic,
+it is natural to conjecture that PA is as far as this process will take us.
+In fact, since almost all ``natural'' statements
+can be derived in even weaker systems, %XXX some notes on reverse mathematics here?
+we might suspect that we can't even learn PA
+unless we consider some very pathological observations,
+unless PA happens to be simpler (and thereby receive a higher prior probability)
+than weaker theories like $\text{RCA}_0$.
+
+In fact this impression is misleading.
+For example
+consider an agent checking whether each integer $n$ is a perfect number,
+one at a time.
+It would quickly form the conjecture that odd numbers are not perfect,
+whether or not it could actually find a proof of the fact.
+This would occur even if this statement is a theorem of PA;
+thus even theorems of PA might prove to be \emph{useful} generalizations,
+which might be accepted as additional axioms.
+
+Continuing in this vein, basic theorems of analysis might be most easily derived
+from assumptions about the existence of infinities or continua
+(which can be characterized by simple sets of axioms).
+Any theorem about strictly finite objects which can be proven
+by analysis can \emph{also} be proven by a brute-force approach
+(or proven from the axioms of Peano Arithmetic),
+but such a proof might be considerably more difficult
+than one that proceeded from the existence of a continuum.
+Even in very simple cases, for example when we are evaluating
+computable functions at rational points to finite precision,
+the machinery of calculus rests on relatively few axioms and
+may be a useful aid for some agents who are not sophisticated enough
+to rebuild the same machinery starting from basic arithmetic.
+
+Even if the agent believes that Peano arithmetic is sound
+and eventually discovers that everything it knows about real analysis can be derived
+within Peano arithmetic by alternative means,
+this won't eliminate the agent's confidence in Peano arithmetic.
+The existence of a continuum gives a simple account of \emph{why}
+facts about analysis should be true, and (assuming the soundness of Peano arithmetic)
+therefore gives an account of why those facts are consistent with Peano arithmetic.
+
+Of course it is very difficult to say what the end result
+of such a learning process would be;
+our point is merely that even if
+very weak theories suffice to prove all ordinary
+theorems, there is no reason why our learner
+would stop there.
+Indeed, its reasons for accepting stronger theories would be quite similar
+to the historical motivation for developing such theories: to provide an elegant unifying
+framework, and to allow for simpler or more direct arguments
+than would otherwise be possible.
+
+\subsection{Metamathematical examples}\label{metamath}
+
+\subsubsection{Consistency of a theory}
+
+In order to reason about its own reasoning,
+an agent might be particularly interested in understanding
+the consistency of an axiom system which it currently accepts.
+It is well known that no powerful theories
+can answer this question by deductive means;
+but by reasoning \emph{inductively}, an agent might be able
+to arrive at high confidence in the consistency of a certain axiom system.
+
+Suppose that an agent is interested in the consistency of PA,
+and makes observations of a mathematical community which is generating
+theorems about PA.
+For simplicity, suppose these observations take the form of ``at time $T$ a proof
+of $\vp$ is published, which has length $k$.''
+The agent can infer some properties of publications;
+perhaps it will infer that there is a notion of
+mathematical importance,
+and that the community
+searches for proofs in PA of important statements and publishes them.
+In reality the agent would make a great many additional observations,
+for example about the structure of the proofs \emph{etc}.
+
+If PA is inconsistent, then a reasonable model for the mathematical
+community's output is expected assign a non-negligible probability
+to a proof of falsehood being published (or at least to proofs of some
+contradictory propositions being published).
+Thus the consistency of PA makes the bold prediction ``the published
+proofs will not demonstrate contradictory facts.''
+Given publications verifying $\vp$ and $\psi$, the agent
+can check for itself that $\vp$ and $\psi$ are not (easily) shown
+to be inconsistent.
+Thus the agent can make repeated tests of this bold prediction,
+which will tend to
+provide support for the consistency of PA.
+
+Of course, there are other explanations for this observation:
+for example, it may be that the shortest proof of inconsistency is quite long,
+or that the search process used by mathematicians is unlikely to turn it up for some
+other reason, or simply that mathematicians have a norm against publishing
+any proof that is easily seen to contradict a known result.
+There are a number of reasons that the consistency of PA might stand out
+as a particularly promising hypothesis:
+\begin{enumerate}
+\item ``There are no proofs of $\bot$'' is a simpler assertion than
+``Every proof of $\bot$ has length at least $k$'' for some large integer $k$,
+or other statements of the form ``Every proof of $\bot$ has property $P$''.
+The total prior probability of statements of the latter type is likely
+to be comparable with the prior probability of the consistency of PA; and most statements
+of the latter type fail to make useful predictions,
+because the property $P$ does not explain why such proofs
+are not published by the mathematical community.
+\item The consistency of PA is a consequence of other, potentially more natural statements,
+such as the axioms of set theory.
+Some of these premises may be simpler than the consistency of PA
+and thereby receive higher probability.
+Other premises (such as the validity of $\epsilon_0$ induction) 
+might be supported by other deductive arguments or other useful generalizations, 
+and thereby receive high probability despite being harder to describe than the consistency of PA.
+\item The agent has access to other lines of evidence, for example its own experimentation
+with simple theorems of PA, which might discriminate between the consistency of PA
+and other explanations for similar phenomena.
+\item Many other useful generalizations may be contingent on the consistency of PA.
+For example, other generalizations about which statements are ``hard'' to prove,
+or coherent simple models for mathematical importance (or mathematicians' decisions about
+which proofs to publish) might only be coherent if PA is consistent.
+At least, the complexity of these statements might need to be increased
+to accommodate the inconsistency of PA.
+So to the extent that these generalizations are useful, they also provide
+evidence for the consistency of PA.
+\end{enumerate}
+
+Similar arguments might cause an agent to suspect not only the consistency of PA, but the unprovability
+of more complex assertions $\vp$ like the twin prime conjecture.
+However, this suspicion would naturally be much weaker:
+\begin{enumerate}
+\item Many of the arguments given above are particular to consistency
+and do not apply in the case of the unprovability of a general $\vp$,
+and therefore the strength of evidence in favor of consistency is greater
+than the strength of evidence in favor of unprovability of $\vp$.
+\item The consistency of PA is a simpler theory (and hence is likely to have a higher prior probability)
+than the unprovability of $\vp$ (which also requires specifying the statement $\vp$).
+\item The probability of a proof of $\vp$ appearing given the provability of $\vp$
+is much lower than the probability of a proof of $\bot$ appearing given the provability of $\bot$.
+This is due both to the increased simplicity of $\bot$, and due to the fact that a proof of $\bot$
+would lead to a proof for all other propositions (and hence would be expected
+to have other effects on the community's output, even if the proof of $\bot$ itself wasn't published).
+As a result, the non-appearance of a proof of $\vp$ is weaker evidence for the unprovability of $\vp$
+than the non-appearance of a proof of $\bot$ is for the consistency of PA.
+\item Even if a proof of $\vp$ exists,
+induction suggests that in general it will be quite long;
+if there is a proof of $\bot$, there is little \emph{a priori} reason to think
+the same thing.
+If the community's output is more likely to find short than long proofs,
+this again makes the non-appearance of a proof of $\vp$ less evidence
+than the non-appearance of a proof of $\bot$.
+\end{enumerate}
+
+As in the last section, we must stress that it is difficult to predict
+the actual results of induction
+when applied to this case.
+Nevertheless, we feel we have given some indication that this framework
+is capable of ``learning'' the consistency of a theory.
+Moreover, we feel that the considerations which are relevant to this framework
+are quite similar to those which are relevant to an informed human's judgment
+about the consistency of a theory.
+
+%XXX discuss the role of self-verification here
+
+\subsubsection{Large cardinals}
+
+%XXX read a bit of ``believing the axioms''
+
+The current status of large cardinal axioms strikes us as another
+domain where ``inductive'' mathematical reasoning is currently playing
+a significant role.
+Deductively, it is clear that large cardinal axioms represent further assumptions:
+assuming consistency of the theories involved, there is no way to
+move from PA to ZFC, or from ZFC to stronger large cardinal axioms. %XXX discussion of large cardinal axioms, a few more in the chain
+Nevertheless, it seems that mathematicians are able to form beliefs about such axioms
+based purely on observations of finite objects---the success or failure of certain searches for proofs.
+
+It seems likely that the kind of inductive reasoning we describe here plays an important
+role in forming these beliefs.
+Our framework seems unlikely to be expressive enough to capture all of this reasoning,
+but once again we can work through the \emph{kinds} of considerations
+that would lead our framework to come to a tentative conclusion about large cardinal axioms.
+To the extent that these considerations seem to capture the considerations
+that are relevant for humans reasoning about large cardinals,
+this provides some evidence that it will be possible to make headway
+on formalizing ``informal'' mathematical reasoning in this domain.
+
+The first key observation about large cardinal axioms is that they 
+explain the consistency of large cardinal axioms.\footnote{Given
+an appropriate account of self-verification, they might explain their
+own consistency. But until such an account is available,
+we can content ourselves with the observation that each such axiom
+explains the consistency of all \emph{weaker} large cardinal axioms.}
+The consistency of a large cardinal axiom in turn explains
+why attempts to derive inconsistencies have failed---see the discussion
+in the preceding section.
+
+%XXX this section needs a good bit of work, but seems worth including
+%To mention: 1 linear heirarchy is evidence, 2 generalizing even without a theory
+
+But this does not capture the full strength of the evidence in favor
+of large cardinal axioms.
+Another source of evidence is inductive generalization from the consistency
+of weaker large cardinal axioms to the general consistency of large cardinal axioms.
+
+To be more precise, a reasoner who accepts many particular large cardinal
+axioms $\vp_1, \vp_2, \ldots$ will by nature gravitate towards some explanation
+for why all of these axioms have proven to be consistent.
+If there was some grand theory $T$ which explained this fact,
+then our reasoner would eventually assign each large cardinal axiom
+a high probability given its predecessor.
+On the other hand, the existence of such a grand theory would also lend
+evidence to each individual assertion $\vp_i$, because now $T$
+itself constitutes a particularly parsimonious explanation for the failure
+to deduce inconsistencies from particular large cardinal axioms.
+
+Human mathematicians are quite uncertain about what such a theory $T$ might look like,
+and moreover it may be that there is no finitely axiomatizable
+theory which has the desired characteristics.
+But whether or not there is such a theory $T$,
+the existence of syntactic and mathematical relationships between the axioms
+$\vp_1, \vp_2, \ldots$ suffices to make generalizations over them;
+indeed, we can posit the existence of an unknown grand explanation,
+and infer some of the characteristics of this explanation (and therefore use it to make judgments)
+from our observations.
+This works even if we cannot pin down the grand explanation itself.
+
+\section{Interaction}\label{interaction}
+
+%XXX insert some examples here, and perhaps elsewhere
+
+\subsection{Modeling interaction}
+
+Rather than considering a passive learner
+receiving evidence from a teacher,
+we can consider an active learner interacting
+with a more general environment.
+
+To keep the exposition simple, for now we'll assume
+that the agent and environment interact
+via a binary channel;
+at each time step the agent specifies a bit corresponding to its action
+and the environment responds with a bit (the agent's observation).
+Formally,
+the environment is represented by a special function symbol $\O : \b{0, 1}^* \rightarrow \b{0, 1}$
+and the history of the agents actions is represented by $x : \mathbb{N} \rightarrow \b{0, 1}$.
+At time $t$ the learner chooses $x(t) \in \b{0, 1}$
+and then is ``told'' $\Of{x(0) \cdots x(t)}$.
+Formally, if the agent selects $x(t) = x$ and the environment
+responds with $\Of{x(0) \cdots x(t)} = y$,
+then the agent updates on the sentences $x(t) = \underline{x}$
+and $\Of{x(0) \cdots x(t)} = \underline{y}$,
+where $\underline{x}$ and $\underline{y}$ are terms in the language
+representing $x$ and $y$.
+
+To actually specify a model, we need to describe the behavior of the learner.
+In a realistic application we might imagine that the learner
+has some goals unrelated to learning, and chooses an action to satisfy those
+goals (which might incidentally require learning about mathematics).
+Below we sketch a few simple rules of action:
+
+\begin{itemize}
+\item \textbf{The greedy learner:}
+The greedy learner is interested in some proposition $\vp$
+(or family of propositions, for example concerning the value of a function $f$),
+and greedily selects the query $x_t$ for which its distribution
+over $\Of{x_1 x_2 \cdots c_t}$ has maximum mutual entropy with its distribution $\vp$.
+Equivalently, it chooses the query such that the expected entropy of its beliefs about $\vp$
+after learning the result of the query
+is minimized.
+\item \textbf{The patient learner:} The patient learner has a fixed lifetime $T$
+and a question of interest $\vp$.
+It choose a policy which minimizes the expected entropy of its beliefs about $\vp$
+at time $T$.
+
+This can be done using dynamic programming,
+essentially considering a brute force search over all sequences of observations
+and actions.
+For any sequence of observations at time $T-1$, the agent can use the greedy learner's
+policy to evaluate the optimal action.
+This allows the agent to estimate the value it will secure if it makes any particular
+sequence of $T-1$ observations,
+which can be used to determine the optimal action for any sequence of $T-2$
+actions.
+Proceeding in this way, the agent can determine the optimal initial
+action and then make it.
+\item \textbf{The utility maximizer:} the utility maximizer has a fixed
+lifetime $T$ and a function term $U : \b{0, 1}^T \times \b{0, 1}^T \rightarrow [0, 1]$
+representing its utility function.
+
+Using a similar dynamic programming approach, it selects the policy
+which maximizes $\E{U\of{x_1 x_2 \cdots x_T, y_1 y_2 \cdots y_T}}$.
+
+This definition depends on considerably more subtleties than those preceding it.
+For example, note that the obvious generalization of the agent
+described in the preceding section would choose its actions to maximize 
+its \emph{expectation} 
+of the value of $U$, and so a priori it might take actions
+which caused it to believe that $U$ was large rather than actions which caused $U$ to
+be large. This is only non-problematic because of the martingale property of 
+Bayesian beliefs---a Bayesian can never expect an observation to change their estimate of $U$
+in a particular direction. %XXX cite daniel dewey
+
+Relatedly, the agent will eventually learn a model for the observations $x(t)$ themselves.
+This causes the agent's actions to constitute evidence to itself (namely,
+if the agent outputs $0$ and then updates on this fact, it has now learned
+that a certain algorithm defined with respect to a halting oracle outputs 0).
+This evidence could influence the value of $U$, and would cause the simplest
+definition of this agent to behave as an ``evidential'' decision-theorist.
+
+Discussing these subtleties would take us outside the scope of this paper.
+As usual, we merely pause to observe that having a formal model
+in hand for such goal-oriented behavior seems to 
+open up a wide range of previously philosophical
+questions to a more technical analysis.
+\end{itemize}
+
+\subsection{Planning}
+
+All of the agents described in the last section
+plan for the future by explicitly considering all possible
+plans. Computationally bounded agents,
+or agents which have infinite time horizons, must take a different approach.
+
+In principle, we can reduce the planning problem to the epistemic
+problem of evaluating the quality of a state. If we had access
+to particularly accurate evaluations of the quality of intermediate states,
+we could make good decisions by looking only one step ahead. %XXX citations for evaluation gfunctions
+Moreover, the quality of a state has a simple
+mathematical form in principle (regardless of how difficult it is to reason about):
+the quality is simply the expected utility obtained conditioned
+on that state occurring (if we take a state to also include the history
+leading to that state).
+
+Reasoning successfully about this quantity is quite difficult,
+and in practice a range of domain-specific heuristics are often used.
+However, these heuristics can be given a unifying account
+as effective approximations to the ``real'' value of a state,
+which a sophisticated agent might be able to learn by a
+combination of inductive and deductive reasoning (in the same way
+that humans originally learned these functions).
+For example, evaluation functions for chess positions
+can (in principle) be learned as predictors of who will
+win a chess game given reasonable play between the two sides.
+The only significance of our formalism here is the observation
+that the ``real'' value of a state can be given a precise
+mathematical characterization, and so an agent
+capable of human-level mathematical reasoning would be able
+to use this very general formulation.
+
+Reasoning about this quantity naturally encapsulates planning,
+heuristic evaluation functions,
+and
+exploration vs. exploitation.
+For example, an agent might discover a simple plan beginning
+with action $a$, and then take action $a$ based on the knowledge
+that its future-self will do something \emph{at least as good as}
+the simple plan it has identified.
+Or an agent might take an action based on the belief
+that it will be better-informed in the resulting state,
+and so will make better choices.
+Note that this formalism also immediately leads the agent
+to make use of computational aids in its environment
+in order to help construct plans---there is no
+distinction between its knowledge about the environment
+and its knowledge about the value of intermediate states,
+and plans are evidence that clarifies the value of intermediate states.
+
+Formally (again restricting attention to infinite agents), 
+we can define $x(0), x(2), \ldots$ and $y(t) = \Of{x(0) \cdots x(t)}$.
+By quining, we can ensure that the agent knows a description
+of its own decision procedure (for more realistic approaches
+which are applicable to feasible agents, see the section on introspection below),
+and we can add the additional axiom that $x_t$ is defined from $x(0), \cdots, y(t-1)$
+and $y(0), y(1), \ldots, y(t-1)$ by using this decision procedure.
+The agent has utility function $U$, which is a real-valued term
+depending on $x$ and $y$, then its decision procedure is given by:
+\[ x_i = \argmax_{b \in \b{0, 1}} \Ec{U}{x_i = b \wedge \bigwedge\limits_{j < i} 
+\of{x_j = \underline{x_j} \wedge y_j = \underline{y_j}}},\]
+where $\underline{x_j}$ is either the symbol $0$ or the symbol $1$
+depending on whether $x_j$ was $0$ or $1$.
+
+This proposed algorithm can be straightforwardly instantiated using a halting oracle,
+and in the following sections we will discuss elaborations which allow it to be
+instantiated by a potentially tractable algorithm. 
+
+Unfortunately it seems unlikely
+to yield good behavior, for (at least) the following reason:
+in order to reason about the value of a state, the agent
+must reason about the value they will be able to obtain starting from that state,
+which in turn requires reasoning about the accuracy of the judgments that they
+will make.
+This may be straightforward for \emph{particular} judgments---if the agent
+believes that $\vp$ has probability 2/3 and can determine by introspection
+that it assigns $\vp$ probability 2/3, then it will typically believe that its judgment
+about $\vp$ is reasonable.
+But the entire point of this approach to planning was to prevent the agent
+from needing to consider every particular contingencies that would
+arise in the future.
+Doing so requires reasoning about the quality of a \emph{generic} future judgment.
+For example, in order for the agent to believe that it will take actions
+\emph{at least as good} as a simple plan that it has identified,
+it must believe that its future self won't predictably make errors in judgment.
+In order for the agent to believe that acquiring more information is useful,
+it must believe that its future self will make better judgments given more evidence,
+ideally without needing to consider every possible piece of evidence
+that might be received.
+
+Unfortunately, our system does not necessarily believe any of these
+self-confidence assertions.
+Indeed, in the classical case of deductive logic, such self-verification
+axioms typically lead to self-referential paradoxes.
+It seems quite plausible that the probabilistic reasoners will not have these
+difficulties; a probabilistic reasoner can acquire inductive
+evidence in favor of their own reliability, and it is still possible
+that there are ``approximately self-verifying'' logical priors.
+
+See the section on self-verification below for further discussion of these issues.
+
+\subsection{Limited memory}
+
+In the case of unbounded computation, we considered agents
+who remember the entire history of their interaction with the environment,
+and reason about the outcomes of all future interactions.
+In the case of bounded computation this becomes impractical: we are interested in considering
+agents whose lifetimes are longer than they can directly reason about.
+For example, a human can reason directly about the \emph{length} of their life,
+but cannot simultaneously hold all of the experiences of their life in their head.
+
+In this case it may be useful to consider agents which have a \emph{limited memory}.
+In addition to giving our agents a distinguished symbol for the environment $\O$,
+we can provide them with a distinguished symbol $t$ for the current time.
+Rather than having beliefs about all values $x_i, y_i$, the agent might keep track
+only of those which have occurred recently or will occur soon: $x_{t-k}, y_{t-k}, x_{t-k+1}, y_{t-k+1}, \ldots, y_{t+k}, x_{t+k}$.
+For for $i < t-k$, such an agent no longer has any belief about the value of $y_i$
+(though they may still have beliefs of the form ``the last time I saw Alice it was in Detroit,'' \emph{etc}).
+Note that this occurs automatically if we make use of the bounded quantifier depth agent in section~\ref{bounded-qr}.
+
+The main difficulty with such proposals is updating the agent's beliefs as time passes.
+This can be done by first shifting the agent's beliefs
+to reflect the change in the value of $t$,
+updating on the observation,
+and using the framework of KL divergence discussed
+in section~\ref{sos} to extend the agent's beliefs to the new sentences
+introduced by the increase in $t$.
+Formally, if at a certain time the agent takes action $x^*$
+and observes $y^*$, 
+then we update the agents' beliefs as follows:
+\begin{enumerate}
+\item First, we form a new set $S'$, by adjoining a new symbol $t'$.
+For each $\vp \in S$, we include both $\vp$ and $\vp\left[t = t'\right]$ in $S'$.
+We also include the statement $t = t'+1$.
+We may also include some additional statements in $S'$ to help pin down the relationship
+between $t$ and $t'$.
+For example, we might include all of the sentences with some fixed quantifier rank,
+or we might take the closure of $S'$.
+\item Now we do a preliminary transfer of the agent's beliefs to $S'$:
+for each $\vp \in S$ the agent's beliefs are unchanged,
+the sentences $t' = t+1, x_{t'} = x_{T+1}, y_{t'} = y_{T+1}$ are assigned probability $1$,
+and the agent's beliefs about other sentences are left undefined.
+\item Now we take the coherent distribution over $S'$ minimizing the KL divergence from these
+preliminary beliefs. This is not completely straightforward,
+because the preliminary beliefs do not assign probabilities to some statements.
+We would like to consider the ``relative'' entropy only for those statements
+where both distributions assign probabilities, and consider the absolute entropy
+everywhere else.
+We can emulate this by defining the relative entropy from $\QQ$ to $\PP$
+as the smallest relative entropy from any coherent extension of $\QQ$ to $\PP$
+(which turns out to have a simple algebraic form).
+
+These definitions can be applied either in the setting either of section~\ref{closedcoherence}
+or section~\ref{sos}.
+
+\item We discard every sentence including $t$ from the agent's beliefs, 
+and then replace every instance of $t'$ with $t$.
+\end{enumerate}
+It is easily proven that such an agent's beliefs are correct
+about the observations
+which it still ``remembers.'' 
+After the observations have been forgotten, their consequences
+might still be remembered (for example, if I observed a proof of an interesting
+fact in the environment, I would remember the fact even after the observation faded).
+
+\subsection{External memory}\label{external-memory}
+
+Although we have described this constraint as ``limited memory'' it is worth mentioning
+that it also arises from a limitation on computational resources.
+In the framework we have described, if an agent can reason about any sentence
+$\vp\of{x}$, it will typically \emph{automatically} be able to do a brute force
+search over all $y$ with $\abs{y}\sim\abs{x}$.
+
+In many realistic situations this is not the case. For example, 
+it is quite natural for me to write down the number
+2860486313
+without having the time to determine whether this number is prime.
+
+Modeling this in our framework (or building an agent which is capable
+of such reasoning using our framework) requires formalizing the concept of external memory.
+In fact this is an automatic consequence of the notion of limited memory defined above,
+but it is important enough that it is worth calling out separately.
+
+For illustration, consider an environment $\O$
+which implements a Turing machine tape.
+That is, at each step the agent observes the contents
+of the current tape cell,
+and can write new contents (from some alphabet $\Sigma$)
+as well as move to the next or previous cell.
+
+We'll imagine the case where the agent is given a description
+of the environment axiomatically, but in principle an agent
+could also infer such a description from observations
+(for example, it will quickly learn that if it writes, moves back,
+and then moves forward, it will observe the same string it just wrote---eventually
+it will develop the Turing machine model to explain these observations,
+and potentially even develop a theory of arithmetic in order to accommodate
+the Turing machine model).
+
+Introducing such an environment allows an agent to reason about
+objects \emph{indirectly}.
+For example, an agent might have beliefs about the integer
+encoded in a certain region of the tape,
+despite the fact that this integer is too large for the agent
+to reason about directly.
+
+By reasoning in this way, the agent can perform computations on these objects
+and reason about the results of those computations
+(and infer things from observing the results of the computations) without ever being
+able to directly reason about the objects in question.
+For example, the agent can simulate a Turing machine $M$
+by maintaining the simple belief ``There is a time $t$
+such that the environment's state is the result of running
+$M$ for $t$ steps, and my current location
+is the location of the Turing machine tape head at time $t$.''
+If the agent then follows the next step of the policy defining $M$,
+then this belief will be preserved.
+If eventually the agent discovers that the policy defining $M$
+represents accepting or rejecting, then the agent
+will (correctly) believe that $M$ accepts or rejects---without
+being able to represent any of the intermediate steps
+taken by $M$.
+
+Similarly, an agent could ``write down'' some numbers
+and reason about their properties even though it cannot
+hold them in memory.
+It could verify that a number written in a certain place
+is prime by carrying out the steps of a primality-testing
+algorithm, even without being able to write down the number itself.
+And so on.
+
+This provides a more realistic source of examples
+for the computational utility of sophisticated mathematical theories.
+For example, an agent might be able to perform some series of steps which resulted in it believing
+``There exist numbers $a$ and $b$ such $ab$ is written down in register 1
+and $ba$ is written down in register 2,''
+even if $a$ and $b$ are much too large for the agent to reason about directly.
+The commutativity of multiplication would then lead to the prediction that the two
+registers contain the same numbers,
+and in particular that every observation of one register will yield
+the same result as the same observation of the other register.
+(In fact the agent could come to suspect the commutativity of addition
+before it even finished looking at the registers, after it observed
+that the two numbers had many bits in common.)
+
+Although we've described external environments that provide
+such scratch space, and it is natural to think in terms of the analogy
+with external computational aids, the ``environment'' need not be external.
+For example, we could design a brain as a system with two components:
+an agent, and a useful computational environment that the agent interacts with.
+The non-agent part of the brain could be used to read and write memories,
+to perform specialized processing tasks, or whatever else.
+
+\subsection{Introspection}
+
+We briefly mentioned the possibility that an agent using a halting oracle 
+can be made aware of their own decision procedure via quining.
+The reason for this is that the agents we have considered have
+a compact description, and they have conditioned on a finite
+set of observations. There are some additional subtleties,
+for example we must quine not only the agent but also all observations,
+and this actually changes the content of the agent's updates
+(when a self-aware agent updates on $\vp$ it not only updates on $\vp$,
+but on the fact that it updated on $\vp$, \emph{etc.}):
+%\begin{theorem}
+%Consider a language $L$ which contains an additional symbol $\PP$.
+%Then for every $\vp$ there is a $\PP_{\vp} \in \D{L}$
+%such that:
+%\begin{enumerate}
+%\item If $\vp$ is not a contradiction, $P_{\vp}(\vp) = 1$.
+%\item For all $\vp, \psi \in L$,
+%$\PP{\vp}
+%\item The map $\vp, \psi \rightarrow \PP_{\vp}\of{\psi}$ is computable using a halting oracle.
+%XXX figure out what to say here.
+
+This approach is not satisfactory for bounded agents with limited memory.
+In particular, in order to describe the current state
+of an agent whose beliefs are a map in $\Dp{S_0}$,
+we need to either represent an entire map $S_0 \rightarrow [0, 1]$
+(which certainly cannot be described by a sentence in $S_0$!)
+or represent all of the observations $\vp_1, \vp_2, \ldots$ on which
+the agent has conditioned (which requires too much memory after more
+than a few observations).
+
+Of course, an agent can still manipulate a mathematical representation of their
+current beliefs:
+they are the beliefs at time $t$ of an agent who begins with a certain prior
+and then forms their beliefs by conditioning on observations.
+However, the agent is now ignorant of its own characteristics.
+To the extent that understanding its future behavior is important for planning,
+we need to attend to the agent's self-knowledge.
+
+There are at least three plausible approaches by which the agent could come to know 
+facts about itself:
+\begin{enumerate}
+\item The agent can use deduction to infer a limited set of characteristics
+about itself. For example, it knows that it has \emph{some} beliefs
+and takes optimal actions with respect to those beliefs, even if it doesn't
+know all of its beliefs, and this knowledge can be quite useful for planning.
+\item After making a decision $x(t)$, the agent conditions
+on the fact that it took this action.
+This allows the agent to build up a simplified self-model in the same way
+that it builds a model of the environment,
+and to inductively infer generalizations about its own behavior
+which can then be used for planning.
+\item We can provide the agent with an environment
+which allows \emph{explicit} introspective access.
+For example, we could allow the agent to write down a proposition $\vp$
+in external memory, and then ask the environment to tell it
+the agent's current beliefs about $\vp$.
+This might correspond to the agent imagining a hypothetical situation
+and then inferring their own response to that hypothetical situation,
+which of course could be an important input into planning.
+\end{enumerate}
+
+\subsubsection{Avoiding quining}
+
+Even the discussion of ``bounded introspection'' above relies on
+quining: the agent is given a compact description
+of its own initial dynamics,
+and defines its current state as the result of evolving
+those dynamics up until time $t$.
+Though this imposes only a ``constant'' requirement
+on the agent's beliefs (they must be complex
+enough to describe the agent itself), this requirement
+might still be prohibitively difficult to meet.
+Methods based on quining also appear to be \emph{particularly} and egregiously
+psychologically implausible.
+
+An alternative approach is to simply provide the agent with special symbols
+which refer to its own characteristics.
+For example, we might provide the agent with a symbol $\PP$
+referring to its own prior distribution, or a symbol $\PP_t$
+referring to its beliefs at time $t$, or a symbol $A$
+referring to the decision of the agent when it has beliefs $t$.
+
+We can then provide rules bridging between
+these special symbols and the agent's observations.
+For example, we can enforce the axiom $x_{t+1} = A\of{\PP_t}$,
+and $\PP_{t+1}\of{\vp} = \PP_t\ofc{\vp}{\q{x_t = \underline{x_t} \wedge y_t = \underline{y_t}}}$.
+With these rules in place, updating on $x_t$
+gives the agent information about $A$ and $\PP$.
+(And as usual, the agent can proceed to form
+inductive generalizations about these functions even
+if their exact form is too complex for it to understand.)
+
+We can also add some axioms constraining $A$ and $\PP$
+which are not as complex as their full specification.
+And we can provide opportunities for introspection,
+as long as the agent is given axioms relating the output
+of introspection to the symbols $A$ and $\PP$ (or whatever
+other symbols we supply).
+
+\section{Conclusion}\label{conclusion}
+
+\subsection{Further work}\label{further-work}
+
+We have painted a very crude picture of probabilistic reasoning about mathematics.
+On almost every front there are plausible directions for improvement:
+
+\subsubsection{Choice of priors}
+Perhaps the most pressing question is what prior distribution over states of affairs
+is appropriate, especially when subject to computational limitations.
+We have described an ad hoc distribution which seems to be efficient
+and to support some nice properties, but which has little theoretical justification
+and does not perform sensibly in all cases.
+It seems quite likely that there is a more compelling answer to this question.
+
+An intuitive approach to the problem is based on maximum entropy methods.
+One problem with this approach is that it does not result in reasonable
+probabilities for sentences like $\forall x : \vp\of{x}$,
+and so such generalizations will never be learnt.
+To address this we can try to define a weighted notion of entropy,
+representing an ensemble of variables (with some logical constraints)
+which are of different levels of interest.
+
+Carrying out this definition is not straightforward. One plausible rendition is
+\[ H_{\mu}\of{\PP} = \sum_{i} \mu\of{\vp_i} \Hc{\vp_i}{\vp_1, \vp_2, \ldots, \vp_{i-1}} \]
+where the $\vp_i$ are arranged in increasing order of $\mu\of{\vp_i}$,
+and $\Hc{\vp_i}{\vp_1, \vp_2, \ldots, \vp_{i-1}}$ is the expected (under $\PP$) entropy of $\P{\psi}$ after conditioning on the
+truth values of $\vp_1, \vp_2, \ldots, \vp_{i-1}$.
+This has the downside that the maximizing $\PP$ may have $\P{\vp} = 2^{- \muv}$,
+which means that learning a generalization may take an amount of time
+which is exponentially large in the complexity of that generalization.
+
+This choice of $H_{\mu}$ has the interesting
+characteristic that the maximizing $\PP$ satisfies the following minimax property:
+$\PP$ \emph{maximizes} the \emph{worst-case} total log-score on a series of prediction
+problems, where the intended answers to those problems must be consistent
+and the cost assigned to a prediction of the truth of $\vp$
+is weighted by $\mu\of{\vp}$.
+
+Unfortunately, this choice of $H_{\mu}$ has the undesirable property
+that for the maximizing $\PP$, $\P{\vp}$ can be as low as $2^{- \muv}$.
+This implies that the time required to learn a generalization
+might be exponential in the complexity of that generalization,
+which we consider unacceptable.
+
+In the setting of section~\ref{sos}, an alternative generalization
+is the quantity $\tr{\mu \log \Sigma_{\PP}}$, where $\mu$ is a trace
+1 diagonal matrix whose diagonal entries are $\muv$
+(where $\tr{\log \Sigma_{\PP}}$ would be analog of the unweighted entropy).
+We do not yet have an understanding of this function or its characteristics.
+
+%XXX justification for using weighted entropy at some point, preferably in the first presentation
+
+\subsubsection{Probabilistic generalizations}
+
+The system we have described is able to make universal generalizations,
+of the form $\forall x : \vp\of{x}$, given enough
+positive examples of $\vp$ (or at least, it is able to predict
+subsequent values of $\vp\of{x}$ \emph{as well as if} it had made such a generalization).
+Most realistic generalizations are not of this form.
+This is quite clear in everyday experience,
+but is also plausible in a mathematical setting;
+even if the actual output of mathematical reasoning is proofs,
+such heuristics and probabilistic generalizations may play a central role
+in the actual practice of mathematics.
+
+So we would like to be able to build a system which can learn
+probabilistic generalizations, of the form ``the probability of $\vp\of{x}$
+is 2/3, for a generic $x$'' or ``a generic $k$ digit number has a $1/k$ probability of being prime.''
+
+We can make some crude steps towards this goal by simple heuristics.
+For example, we can use a number quantifier to learn that the number of $x$
+satisfying $\vp\of{x}$ is $2/3$ of the total number of $x$
+(and even without a number quantifier we could explicitly code such a sentence in set theory, for example).
+But most of these heuristics seem to perform badly even in simple cases,
+and to fail to capture exactly what we want.
+
+%XXX discuss crude tricks?
+%XXX have some more discussion of why you'd want to learn simple things in general, not just universal generalizations
+%that should be earlier in the paper though.
+
+The approach we would find most satisfying would be one in which this constraint entered into the cost function
+used to determine $\PP$, rather than appearing as a logical constraint.
+To motivate this hope, we consider the case of ordinary Bayesian reasoning.
+When a Bayesian using a maximum entropy prior receives a piece of evidence for a proposition $X$
+which suggests that $X$ is twice as likely as they had previously supposed,
+their beliefs $\PP$ now maximize the function:
+\[ H\of{\PP} + \PP\of{X} \]
+(if $H$ is measured in bits).
+
+Similarly, if we are able to pick $\PP$ as the maximizer of some payoff function
+motivated by entropy, we might be able to impose a linear term
+which caused $\PP$ to assign a higher probability to each expression $\vp\of{x}$
+(though this tendency could then be overruled by conflicting generalizations
+and logical constraints).
+That is, if we accept the generalization ``For each $x$, $\vp\of{x}$ is twice
+as likely as we would otherwise suppose''
+then our beliefs could be determined by maximizing
+\[ H\of{\PP} + \sum_{x} \P{\vp\of{x}} \]
+(as in Theorem~\ref{optimality}, we would need to take care
+in defining the maximum, since the sum would probably be infinite).
+Then we can recover universal generalizations via ``For each $x$, $\vp\of{x}$
+is infinitely more likely than we would otherwise suppose.'' %XXX mention odds ratios
+
+There are a few challenges with carrying out this program, however.
+First, we would like to impose this linear term only if $\PP$
+thinks it is true.
+So instead of a linear term, we would like to include an interaction term
+between $\vp\of{x}$ and the event ``for each $x$, $\vp\of{x}$ is more likely than we would
+otherwise think.''
+But we need to take care to do this in a way that doesn't create
+an infinite incentive or disincentive for $\PP$ to assign high probability
+to this soft generalization. %XXX introduce the term / clean up language
+
+Second, we don't yet have any working formulation of our prior as a suitably
+modified maximum entropy distribution, and imposing such linear costs
+in our current framework does not achieve the desired functionality.
+If this approach is to be successful, it will probably require
+a different choice of prior.
+
+\subsubsection{Self-verification}
+
+Our ultimate objective concerning reflective reasoning
+is the notion of \emph{reflective consistency}.
+Intuitively, we would like to build systems
+which consider their own output to be evidence about a claim.
+
+Formally, we would like to write down some algorithm $\PP$
+such that $\Pc{\vp}{\Pq{\vp} = p}$ is, if not equal to $p$,
+at least pulled towards $p$.
+That is, $\PP$ should treat the observation of $\Pq{\vp} = p$
+in the same way that it treats the testimony of an informed
+and wise teacher about $\vp$.
+Of course, there might be some pathological sentences,
+such as ``the wise teacher thinks this sentence is false,''
+for which updating on the teacher's testimony
+that the sentence is false actually causes you to believe that the sentence is true.
+
+In fact we may want to go somewhat further; 
+we may imagine that $\PP$
+is evaluating the quality of its own judgment \emph{in general}
+rather than regarding a particular proposition.
+Formally, suppose that $c_{q}$
+is a constant symbol indicating that the agent will need to make a decision
+about $\vp\of{c_q}$.
+Then we would like to say that the agent's beliefs about $\vp\of{c_q}$
+are accurate in general,
+given that it had to make a decision about $c_q$.
+In symbols, if $\underline{x}$ is the numeral representing $x$, then
+\[ \Pc{\vp\of{c_q}}{\Pqc{\vp\of{\underline{c_q}}}{c_q = \underline{c_q}} = p}\]
+should be, if not equal to $p$, at least strongly pushed towards $p$.\footnote{It
+    may seem strange to condition on $c_q = \underline{c_q}$, i.e. we might hope that
+    $\Pc{\vp\of{c_q}}{\Pq{\vp\of{\underline{c_q}}} = p}$ is close to $p$.
+    But this is unlikely to be true in general. For example, if $c_q$
+    is defined to satisfy $\vp\of{c_q}$ then the agent might assign probability 1
+    to $\vp\of{c_q}$ but low probability to $\vp\of{\underline{c_q}}$,
+    unless it conditions on $c_q = \underline{c_q}$.
+} (As before, there may be pathological sentences for which the effect is reversed,
+and in general we should never expect the probability to be \emph{exactly} $p$.)
+
+The analogous problem in the case of deductive reasoning is to build
+a system which can prove that anything it proves is correct.
+This project is in some sense straightforward:
+if you can build a system which believes ``$\vp$ is true'' for
+each of its axioms $\vp$, it can conclude by an inductive
+argument that everything it proves is true.
+Unfortunately, it turns out that both steps of this plan---defining
+a notion of truth, and building a system which trusts its own axioms---are
+essentially impossible.
+
+In the probabilistic setting, we no longer have to contend with these
+impossibility results (at least if we are willing to allow arbitrarily
+small uncertainty in our system's self-evaluation).
+But the project is no longer as straightforward as in the deductive case:
+what should our system believe about itself, in order to treat
+its own judgments as evidence? There was a clear rationale for
+proofs, in that they can be justified by assuming the truth of the axioms.
+But for probabilities, it is no longer adequate to believe that your
+absolute assumptions are correct, you need to believe that your
+prior is correct.
+
+This appears to be a much higher bar.
+Moreover, a demonstration of a natural self-verifying system
+would provide some indication that the chosen prior is a good one,
+in exactly the same way that the fact that proofs provably preserve truth provides
+an indication that proofs are epistemically solid.
+
+An agent may also come to trust its own judgments on the basis
+of \emph{inductive} evidence, and this may be in closer accordance
+with an intuitive picture of our own self-trust.
+That is, a system might be able to observe its own reliability
+in a number of cases and infer that it is likely to be reliable
+in analogous future cases.
+
+This approach also requires further technical work,
+in order to demonstrate that it is possible for the system
+to learn the appropriate kind of generalization.
+So far, proposed systems have not been able to learn these generalizations,
+either because they lack sufficient expressive power, or because
+these generalizations would be inconsistent and are hence assigned
+zero probability.
+The severity of these difficulties is not yet clear;
+discussing them at more length would be outside of the scope for this paper.
+
+%\subsubsection{Truth}
+%%
+%The concept of truth plays an important role in human reasoning about epistemology,
+%and formalizing the concept of truth has been the subject of considerable
+%inquiry in mathematical logic and philosophy.
+%We are typically interested in notions of truth which satisfy
+%some schematic correctness condition such as ``$\vp$ is true if and only if $\vp$.''
+%Classically, satisfactory notions of truth have proven somewhat elusive,
+%and any approach must contend with the liar's paradox
+%and associated impossibility results. %XXX cite I guess
+%
+%In the probabilistic setting, the notion of truth
+%becomes somewhat more challenging to deal with.
+%In this setting, we might seek an analogous notion of ``probability'' 
+%satisfying a correctness condition such as
+%``If $P\of{\vp} = p$, then $\vp$ with probability $p$.''
+%Satisfying such a scheme exactly is just as impossible
+%as producing a classical truth predicate.
+%But in the probabilistic setting, we can relax the rigidity
+%that leads to the classical paradoxes while still
+%retaining an interestingly useful result:
+%We can do this in two dimensions:
+%\begin{enumerate}
+%\item Hannes Leitgeb has shown that we can instead enforce 
+%``If $P\of{\vp} = p$, then $\vp$
+%with probability \emph{approximately} $p$.'' %XXX cite Leitgeb
+%In fact, the approximation can be taken to be arbitrarily good,
+%leading to a principle which appears to be practically
+%as useful as the exact principle.
+%\end{enumerate}
+%XXX not really working, maybe cut this section or maybe reword to just discuss Leitgeb's result
+
+\subsubsection{Shifting attention?}
+
+Our finite systems all rely on a fixed set of sentences $S$
+with respect to which probabilistic judgments are coherent.
+Combined with externalizing memory
+(and the ability to carry out proofs in externalized memory), this may be an adequate
+basis for reasoning.
+But it seems plausible that the set $S$ itself should
+be subject to change as different facts become important to the agent.
+
+Suppose the agent wishes to change its focus from the set $S$ to a set $T$.
+\emph{Removing} elements from $S$ is straightforward, we can simply
+restrict our original coherent distribution to a smaller set of sentences.
+The key problem is determining what probability to assign to sentences
+$\vp \in T \backslash S$.
+So for simplicity, assume $T \supset S$.
+
+One approach is to simply fix the probability of each sentence of $S$ and to find the completion
+to $T$
+which minimizes entropy.
+However, this fails to allow an agent to update on the constraints implied by any new
+sentences that have been included.
+For example, if I previously assigned $\exists x : \vp\of{x}$ a probability of $\frac 12$
+but $T$ contains all of the steps of a proof of $\vp\of{17}$,
+then my probability for $\exists x : \vp\of{x}$ should go to 1, not remain at $\frac 12$.
+In this case retaining a probability of $\frac 12$ would lead to incoherence,
+but in milder cases the sentences in $T$ might contain evidence about an assertion $\psi$.
+
+An alternative approach is to extend a set of beliefs $\PP$ defined on $S$
+to a set of beliefs $\PP'$ defined on $T$
+so as to minimize the KL divergence from $\PP$ to $\PP'$
+(but not enforcing any other temporal consistency condition).
+
+A further difficulty when considering approaches of this type
+is handling the introduction of the new statement as an observation.
+For example, if $T$ includes a proof of $\vp\of{17}$,
+it seems intuitive that this should increase our probability assignment
+to $\forall x : \vp\of{x}$ as if we had conditioned on $\vp\of{17}$.
+But this does not seem to be true for natural resolutions.
+(this is closely related to the challenges described in the next section).
+
+\subsubsection{Paradox of ignorance}
+
+One potentially problematic aspect of our approach is the benefit 
+that prior ignorance appears to confer upon a learner.
+That is, we might expect that an agent operating under a more stringent
+logical consistency condition, which forced their prior
+to assign probability 1 to a larger number of (true) statements,
+would only perform better than its less-informed peer. 
+But in fact we can see that this is not generically true.
+
+Consider a pair of agents, one powerful and one limited, 
+trying to determine the truth of $\forall x : \vp\of{x}$
+for some $\Delta_0$ formula $\vp$.
+Each of them has access to an environment which can evaluate $\vp\of{x}$,
+though it takes longer to evaluate a sentence with a more complicated argument $x$.
+
+To the limited agent, it may be that each new value of $\vp\of{x}$ is a surprise,
+and so constitutes evidence about the generalization $\forall x : \vp\of{x}$.
+If so, it may be able to query nature about some very simple inputs $x$
+and thereby obtain a reasonable view of the universal generalization.
+At the same time, it may be that the more powerful agent is able to deduce $\vp\of{x}$
+directly for simple $x$ (i.e., it considers a set of sentences $S$ large enough
+to prove each $\vp\of{x}$, and therefore its prior necessarily
+assigns these statements probability 1).
+Casually it seems that this should be to its advantage, since it should be able
+to jump to the same conclusion as the limited agent
+but without needing to consult the environment.
+But in fact, because the agent has assigned these statements \emph{prior probability}
+1, they don't act as evidence at all---they would be true
+whether or not the universal generalization $\forall x : \vp\of{x}$ were true---and
+the prior probability of the universal generalization
+is still roughly $\mu\of{\forall x : \vp\of{x}}$
+Thus the more powerful agent must consult the environment regarding
+more complex examples, and pay a larger cost,
+in order to begin to form reasonable beliefs about the universal generalization.
+
+We could respond to this challenge in a number of ways:
+\begin{itemize}
+\item We could define a prior in which the existence of logical constraints
+influences prior probabilities in the desired way.
+For example, the existence of a proof of $\vp\of{17}$ which forces
+us to assign prior probability 1 to $\vp\of{17}$ might cause us to
+increase our prior probability of $\forall x : \vp\of{x}$,
+just as if we had observed $\vp\of{17}$.
+\item We could provide an explicit mechanism
+by which agents can ``update'' on facts that they assign prior probability 1.
+For example, we might imagine an agent's beliefs as being formed in stages,
+subject to increasingly stringent logical constraints.
+Then the complex agent might assign prior probability 1 to the simple sentences $\vp\of{x}$,
+yet update on them in an earlier ``stage'' during which it was ignorant.
+\item We could conclude that it is not a problem at all, and that it is correct that ignorance
+can be an advantage in certain situations; we find this problematic
+but not completely implausible.
+\item Even if $\P{\vp\of{x}} = 1$ is guaranteed by logical coherence,
+the \emph{fact that} $\P{\vp\of{x}} = 1$ is guaranteed by logical coherence
+may not be assigned probability 1, and so we could try to build the agent
+such that updating on this fact would have a similar effect to updating
+on $\vp\of{x}$ itself.
+\end{itemize}
+
+\subsubsection{Implementation}
+
+Most of our discussion has been highly theoretical, and our primary interest
+has been in understanding the nature of mathematical reasoning.
+Nevertheless, it may be possible to implement the system described in section~\ref{sos}
+in practice, and to apply it to simple problems.
+There is little doubt that experience with a working implementation
+would provide a new perspective on these results.
+
+Moreover, the computational time required to deal with a set of $n$ sentences
+(and their pairwise conjunctions)
+is $O(n^3)$, which remains easily manageable up through $n = 10^3$
+(at which point we may have enough expressive power to be interesting,
+given a careful choice of $10^3$ sentences).
+
+\subsubsection{Practical questions}
+
+As discussed in section~\ref{metamath}, there are a number
+of contemporary mathematical discussions in which inductive
+reasoning plays a role, and it may be interesting to try to apply
+formal frameworks like this one to these discussions:
+\begin{itemize}
+\item Applying formal frameworks to current discussions
+may help us understand the current state of evidence,
+and clarify discussion.
+\item Understanding the reasoning which is used in practice
+may help highlight gaps in a formal framework.
+\end{itemize}
+
+%XXX insert some related work
+
+\bibliographystyle{plain}
+\bibliography{probabilisticmathematics}
+
+\section{Appendix}
+
+\magicappendix
+
+\end{document}

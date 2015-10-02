@@ -1,0 +1,480 @@
+\documentclass[12pt]{article}
+
+\usepackage[dvips]{graphics,color}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{latexsym}
+\usepackage{enumerate}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\setlength{\parskip}{1pc}
+\setlength{\parindent}{0pt}
+\setlength{\topmargin}{-3pc}
+\setlength{\textheight}{9.5in}
+\setlength{\oddsidemargin}{0pc}
+\setlength{\evensidemargin}{0pc}
+\setlength{\textwidth}{6.5in}
+
+\DeclareMathOperator{\True}{True}
+\newbox\gnBoxA
+\newdimen\gnCornerHgt
+\setbox\gnBoxA=\hbox{$\ulcorner$}
+\global\gnCornerHgt=\ht\gnBoxA
+\newdimen\gnArgHgt
+\def\q #1{%
+\setbox\gnBoxA=\hbox{$#1$}%
+\gnArgHgt=\ht\gnBoxA%
+\ifnum     \gnArgHgt<\gnCornerHgt \gnArgHgt=0pt%
+\else \advance \gnArgHgt by -\gnCornerHgt%
+\fi \raise\gnArgHgt\hbox{$\ulcorner$} \box\gnBoxA %
+\raise\gnArgHgt\hbox{$\urcorner$}}
+\newcommand{\of}[1]{\left(#1\right)}
+\newcommand{\Pow}[1]{\mathcal{P}\of{#1}}
+\newcommand{\comp}[2]{\left\{ #1 \; \middle\vert \; #2\right\}}
+\newcommand{\st}{\; : \;}
+\newcommand{\Tq}[1]{\True\left(\q{#1}\right)}
+\newcommand{\To}[1]{\True\left(#1\right)}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\Pc}[2]{\mathbb{P}\left(#1\;\middle\vert\;#2\right)}
+\newcommand{\Po}[1]{\mathbb{P}\left(#1\right)}
+\newcommand{\Pq}[1]{\mathbb{P}\left(\q{#1}\right)}
+\newcommand{\vp}{\varphi}
+\newcommand{\Con}[1]{\text{Con}\of{#1}}
+
+\begin{document}
+
+\title{Definability of Truth in Probabilistic Logic \\ (Early draft)}
+\author{
+Paul Christiano\thanks{UC Berkeley. \ Email: paulfchristiano@eecs.berkeley.edu}
+\and
+Eliezer Yudkowsky\thanks{Machine Intelligence Research Institute}
+\and
+Marcello Herreshoff\thanks{Google}
+\and
+Mihaly Barasz\thanks{Google}
+}
+\maketitle
+
+\section{Introduction}
+
+A central notion in metamathematics is the \emph{truth} of a sentence.
+To express this notion within a theory,
+we introduce a predicate $\True$
+which acts on quoted sentences $\q{\vp}$
+and returns their truth value $\Tq{\vp}$ (where $\q{\vp}$ is a representation
+of $\vp$ within the theory, for example its G\"{o}del number).
+We would like a truth predicate to satisfy a formal correctness property:
+\begin{equation}\label{truth-reflection}
+\forall \varphi : \Tq{\varphi} \iff \varphi.
+\end{equation}
+Unfortunately, it is impossible for any expressive language to contain its own truth predicate $\True$.
+For if it did, we could consider the liar's sentence $G$ defined by the diagonalization
+\[G \iff \Tq{\neg{G}}.\]
+Combining this with property~\ref{truth-reflection}, we obtain:
+\[G \iff \Tq{\neg{G}} \iff \neg G,\]
+a contradiction. 
+
+There are a few standard responses to this challenge.
+
+The first and most popular is to work with meta-languages.
+For any language $L$ we may form a new language by adding a predicate $\True$,
+which acts only on sentences of $L$ (i.e., sentences without the symbol $\True$)
+and satisfies property~\ref{truth-reflection}.
+We can iterate this construction to obtain an infinite sequence of 
+languages $L_1, L_2, \ldots$, each of which contains the preceding language's truth predicate.
+
+A second approach is to accept that some sentences, 
+such as the liar sentence $G$, 
+are neither true nor false
+(or are simultaneously true and false, depending on which bullet we feel like biting). 
+That is, we work with a many-valued logic
+such as Kleene's logic over $\left\{\text{True}, \text{False}, \bot\right\}$.
+Then we may continue to define $\True$ by the strong strong reflection property
+that the truth values of $\varphi$ and $\Tq{\varphi}$ are the same for every $\varphi$.
+We don't run into trouble, because any would-be paradoxical sentence
+can simply be valued as $\bot$.
+
+Although this construction successfully dodges the ``undefinability of truth'' it is 
+unsatisfying in many respects.
+There is no way to test if a sentence $\vp$ is undefined
+(any attempt to do so will itself be undefined),
+and there is no bound on the number of sentences which might be undefined.
+In fact, if we are
+specifically concerned with self-reference, 
+then many sentences of interest 
+(and not just pathological counterexamples) may be undefined.
+
+In this paper we show that it is possible to perform a similar construction 
+over probabilistic logic.
+Though a language cannot contain its own truth predicate $\True$,
+it can nevertheless contain its own ``subjective probability''
+function $\PP$.
+The assigned probabilities can be reflectively consistent
+in the sense of an appropriate analog of the reflection property~\ref{truth-reflection}.
+In practice, most meaningful assertions must already be treated probabilistically,
+and very little is lost by allowing some sentences to have probabilities
+intermediate between $0$ and $1$.
+(This is in contrast with Kleene's logic,
+in which the value $\bot$ provides little useful
+information where it appears.)
+
+\section{Preliminaries}
+
+\subsection{Probabilistic Logic}
+
+Fix some language $L$, for example the language of first order set theory. 
+Fix a theory $T$ over $L$, for example ZFC. 
+We are interested in doing ``probabilistic'' metamathematics within $L$,
+and so in addition to assuming that it is powerful enough
+to perform a G\"{o}del numbering, 
+we will assume that some terms in $L$ correspond
+to the rational numbers and have their usual properties under $T$.
+(But $T$ will still have models in which there are non-standard
+rational numbers, and this fact will be important later.)
+
+We are interested in assignments of probabilities to the sentences of $L$.
+That is, we consider functions $\mathbb{P}$ which assign a real $\Po{\varphi}$
+to each sentence $\varphi$.
+In analogy with the logical consistency
+of an assignment of truth values to sentences,
+we are particularly interested in assignments $\PP$ which are
+internally consistent in a certain sense. 
+
+We present two equivalent definitions of \emph{coherence}
+for functions over a language $L$:
+\begin{definition}[Coherence]
+We say that $\PP$ is \emph{coherent}
+if there is a probability measure $\mu$ over models of $L$
+such that $\Po{\vp} = \mu\left(\left\{ \mathcal{M} : \mathcal{M} \models \vp\right\}\right)$.
+\end{definition}
+\begin{theorem}[Equivalent definition of coherence]
+$\PP$ is coherent if and only if the following axioms hold: 
+\begin{enumerate} 
+\item For each $\vp$ and $\psi$, $\Po{\vp} = \Po{\vp \wedge \psi} + \Po{\vp \wedge \neg \psi}$.
+\item For each tautology $\vp$, $\Po{\vp} = 1$.
+\item For each contradiction $\vp$, $\Po{\vp} = 0$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+It is clear that any coherent $\PP$ satisfies these axioms.
+
+To show that any $\PP$ satisfying these axioms
+is coherent, 
+we construct a distribution over complete consistent theories $T$
+which ``reproduces'' $\PP$
+and then appeal to the completeness theorem.
+
+Fix some enumeration $\vp_1, \vp_2, \ldots$ of all of the sentences of $L$.
+Let $T_0 = \emptyset$
+and iteratively define $T_{i+1}$ in terms of $T_i$ as follows. 
+If $T_i$ is complete, we set $T_{i+1} = T_i$.
+Otherwise, let $\vp_j$ be the first statement which is independent of $T_i$,
+and let $T_{i+1} = T_i \cup \vp_j$ with probability $\Pc{\vp_j}{T_i}$
+\footnote{$\Pc{\vp_j}{T_i} = \frac{\Po{\vp_j \wedge T_i}}{\Po{T_i}}$. It is easy to verify by induction that $\Po{T_i} > 0$.}
+and $T_{i+1} = T_i \cup \neg \vp_j$ with probability $\Pc{\neg \vp_j}{T_i}$.
+Because $\vp_j$ was independent of $T_i$, the resulting system remains consistent.
+Define $T = \cup_i T_i$.
+Since each $T_i$ is consistent, $T$ is consistent by compactness.
+For each $i$, $\vp_i$ or $\neg \vp_i$ will be included in some stage $T_j$
+(in fact at stage $j = i+1$ at the latest),
+so $T$ is complete.
+
+Axiom 1 implies
+\[\Pc{\vp}{T_i} = \Pc{\vp}{T_i \wedge \vp_j} \Pc{\vp_j}{T_i}
++ \Pc{\vp}{T_i\wedge\neg\vp_j}\Pc{\neg\vp_j}{T_i},\]
+thus the sequence $\Pc{\vp}{T_i}$ is a martingale.
+Axiom 2 implies that if $T_i \vdash \vp$, $\Pc{\vp}{T_i} = 1$
+and if $T_i \vdash \neg \vp$, $\Pc{\vp}{T_i} = 0$.
+Thus, this sequence eventually stabilizes at 0 or 1,
+and $T \vdash \vp$ iff this sequence stabilizes at 1.
+The martingale property
+then implies that $T \vdash \vp$ 
+with probability $\Pc{\vp}{T_0}$. 
+By axiom 3, $\Po{T_0} = 1$, so $\Pc{\vp}{T_0} = \Po{\vp}$.
+
+This process defines a measure $\mu$ over complete, consistent theories
+such that $\Po{\vp} = \mu\left(\left\{ T : T \vdash \vp\right\}\right)$.
+For each complete, consistent theory $T$,
+the completeness theorem guarantees the existence of a model $\mathcal{M}$
+such that $\mathcal{M} \models \vp$ if and only if $T \vdash \vp$.
+Thus we obtain a distribution $\mu$
+over models
+such that $\Po{\vp} = \mu\left(\left\{ \mathcal{M} : \mathcal{M} \models \vp\right\}\right)$,
+as desired.  \end{proof}
+
+We are particularly interested in probabilities $\PP$
+that assign probability 1 to $T$.
+It is easy to check that such $\PP$
+correspond to distributions over models of $T$.
+
+\subsection{Going meta}
+
+So far we have talked about $\PP$ as a function
+which assigns probabilities to sentences.
+If we would like $L$ to serve as its own meta-language,
+we should augment it to include $\PP$ as a real-valued function symbol.
+Call the agumented language $L'$.
+
+%I think the above paragraph needs to be cut completely
+%Certainly as is it's problematic, since T' asserts its own consistency
+%Similarly, we would like to augment $T$ with some basic statements
+%about this symbol $\PP$.
+%In particular, we would like to create a new theory $T'$
+%which includes all the axioms of $T$
+%and the additional axiom that $\PP$ is coherent
+%with respect to $T'$.
+%This new axiom is self-referential,
+%but it can be defined by diagonalization.
+
+We will use the symbol $\PP$ in two different ways---both as our meta-level
+evaluation of truth in $L'$, and as a quoted symbol within $L'$.
+However, whenever $\PP$ appears as a symbol in $L'$,
+its argument is always quoted. 
+This ensures that references are unambiguous:
+``$\Po{\vp} = p$'' is a statement at the meta level,
+i.e. ``$\vp$ is true with probability $p$'',
+while ``$\Pq{\vp} = p$'' is the same sentence expressed within $L'$,
+which is in turn assigned a probability by $\PP$.
+
+\section{Reflection}
+
+\subsection{Reflection principle}
+
+We would now like to introduce some analog of the formal correctness property~\ref{truth-reflection},
+which we will call a \emph{reflection principle}.
+
+This must be done with some care if we wish to avoid the problems with schema~\ref{truth-reflection}.
+For example, we could introduce the analogous reflection principle:
+\begin{equation}\label{literal-reflection}
+\forall \vp \in L' \; \forall a, b \in \mathbb{Q} : \of{a < \Po{\vp} < b} \iff \Po{a < \Pq{\vp} < b} = 1
+\end{equation}
+But this leads directly to a contradiction: if we define $G \iff \Pq{G} < 1$, then
+\[ \Po{G} < 1 \iff \Po{\Pq{G} < 1} = 1 \iff \Po{G} = 1, \]
+which contradicts $\Po{G} \in [0, 1]$.
+
+To overcome this challenge, we imagine $\PP$ as 
+having access to \emph{arbitrarily precise} information about $\PP$,
+without having access to the exact values of $\PP$.
+Let $(a, b)$ be an open interval containing $\Po{\vp}$.
+Then a sufficiently accurate approximation to $\Po{\vp}$
+would let us conclude $\Po{\vp} \in (a, b)$,
+and so we have
+$\Po{\vp} \in (a, b) \implies \Po{\Pq{\vp} \in (a, b)} = 1$.
+However, the converse is not necessarily true.
+If $\Po{\vp} = a$, then no possible approximation
+can distinguish between the cases $\Po{\vp} < a$, $\Po{\vp} = a$, and $\Po{\vp} > a$.
+So the reverse implication requires closed rather than open intervals:
+for any closed interval $[a, b]$ \emph{not} containing $\Po{\vp}$,
+we could infer $\Po{\vp} \not \in [a, b]$ from any sufficiently accurate approximation to $\Po{\vp}$,
+and thus we should have $\Po{\vp} \not \in [a, b] \implies \Po{\Pq{\vp} \in [a, b]} = 0$.
+
+This suggests the following criteria:
+\begin{equation}\label{reflection}
+\forall \vp \in L' \; \forall a, b \in \mathbb{Q} : \left(a < \Po{\vp} < b\right) \Longrightarrow \Po{a < \Pq{\vp} < b} = 1 \\
+\end{equation}
+\begin{equation}\label{reflection-converse}
+\forall \vp \in L' \; \forall a, b \in \mathbb{Q} : \left(a \leq \Po{\vp} \leq b\right) \Longleftarrow \Po{a \leq \Pq{\vp} \leq b} > 0
+\end{equation}
+We say that $\PP$ is \emph{reflectively consistent} if it satisfies these properties.
+Our goal is to show that starting from any consistent theory $T$ 
+we can obtain a reflectively consistent $\PP$ which assigns probability 1 to each sentence of $T$.
+
+The intuition behind the description ``reflective consistency''
+is that such a $\PP$ would not change upon further reflection.
+This is exactly analogous to the standard view of truth
+as a fixed point of a certain revision operation,
+and indeed we show that such $\PP$ exist
+by constructing an appropriate revision operation and appealing
+to Kakutani's fixed point theorem.
+
+In fact, property~\ref{reflection} and property~\ref{reflection-converse} are equivalent.
+For suppose that property~\ref{reflection} holds, and that $\Po{\vp} < a$ or $\Po{\vp} > b$.
+Then either $\Po{\Pq{\vp} < a} = 1$ or $\Po{\Pq{\vp} > b} = 1$,
+and in either case $\Po{a \leq \Pq{\vp} \leq b} = 0$.
+But this is precisely the contrapositive of propety~\ref{reflection-converse}.
+A similar argument can be applied to show that property~\ref{reflection-converse} implies property~\ref{reflection}.
+In light of this equivalence, we will focus only on property~\ref{reflection},
+and call this property the \emph{reflection principle}.
+
+\subsection{Discussion of reflection principle}
+
+Given a statement such as $G \iff \Pq{G} < p$,
+a reflectively consistent distribution $\PP$ will assign $\Po{G} = p$.
+If $\Po{G} > p$, then $\Po{\Pq{G} > p} = 1$, so $\Po{G} = 0$, 
+and if $\Po{G} < p$, then $\Po{\Pq{G} < p} = 1$, so $\Po{G} = 1$.
+But if $\Po{G} = p$, then $\PP$ is ``uncertain'' about whether $\Po{G}$
+is slightly more or slightly less than $p$.
+No matter how precisely it estimates $\Po{G}$, it remains uncertain.
+
+If we look at the models of $L'$ corresponding to reflectively consistent distributions $\PP$,
+they have $\Pq{G} \in \left(p - \epsilon, p + \epsilon\right)$, where $\epsilon$ is a non-standard
+infinitesimal which lies strictly between $0$ and every standard rational number.
+That is, $\PP$ is ``mistaken'' about itself, but its error is given
+by the infinitesimal $\epsilon$.
+(These are the same infinitesimals which are used
+to formalize differentiation in nonstandard analysis.)
+
+Although this paper focuses on Tarski's results on the undefinability of truth,
+similar paradoxes are at the core of G\"{o}del's incompleteness theorem
+and the inconsistency of unrestricted comprehension in set theory.
+A similar approach to the one taken in this paper
+is adequate to resolve some of these challenges,
+and e.g. to construct a set theory which satisfies
+a probabilistic version of the unrestricted comprehension axiom.
+
+We will prove that there are many reflectively consistent
+distributions,
+but our proof will be non-constructive.
+In fact any coherent $\PP$ is necessarily uncomputable,
+whether or not it is reflectively consistent. 
+But the mere existence of a reflectively consistent distribution
+implies that the property~\ref{reflection} will
+not lead to any contradictions if treated as a rule of inference
+which connects a reasoner's beliefs about $\Po{\vp}$
+to its beliefs about $\vp$ itself.
+So even though we cannot construct any reflectively consistent $\PP$,
+their existence may still have pragmatic implications for reasoning
+(in the same way that introducing the predicate $\True$ might usefully increase
+the expressive power of a language,
+even though the extension of that predicate is necessarily uncomputable).
+
+\subsection{Proof of consistency of reflection principle}
+The most important result of this paper is the following theorem:
+\begin{theorem}[Consistency of reflection principle]\label{consistency}
+Let $L$ be any language and $T$ any consistent theory over $L$,
+and suppose that the theory of rational numbers with addition
+can be embedded in $T$ in the natural sense.
+Let $L'$ be the extension of $L$ by the symbol $\PP$ as above.
+Then there is a probabilistic valuation $\PP$ over $L'$ 
+which is coherent, assigns probability 1 to $T$,
+and satisfies the reflection principle:
+\[ 
+\forall \vp \in L' \; \forall a, b \in \mathbb{Q} : \left(a < \Po{\vp} < b\right) \implies \Po{a < \Pq{\vp} < b} = 1.
+\]
+\end{theorem}
+\begin{proof}
+Let $\mathcal{A}$ be the set of coherent probability distributions over $L'$
+which assign probability 1 to $T$.
+We consider $\mathcal{A}$ as a subset of $[0, 1]^{L'}$
+with the product topology.
+Clearly $\mathcal{A}$ is convex.
+By using the alternative characterization of coherence,
+we can see that $\mathcal{A}$ is a closed subset of $[0, 1]^{L'}$.
+Thus by Tychonoff's theorem, we conclude that $\mathcal{A}$ is compact.
+Moreover, because $T$ is consistent,
+$\mathcal{A}$ is non-empty---for example, let $\mathcal{M}$ be any model of $T$,
+in which each $\Pq{\vp}$ is assigned some arbitrary value,
+and let $\Po{\vp} = 1$ if $\mathcal{M} \models \vp$ and $0$ otherwise.
+
+Given any $\PP \in \mathcal{A}$,
+let $R_{\PP}$ be the schema of axioms
+of the form $a < \Pq{\vp} < b$
+where $a, b$ are the endpoints
+of a rational interval containing $\Po{\vp}$.
+We will write $\Po{R_{\PP'}} = 1$ as shorthand
+for $\forall \psi \in R_{\PP'} : \Po{\psi} = 1$
+(this notation is justified, since $R_{\PP'}$ is countable).
+Define $f : \mathcal{A} \rightarrow \mathcal{P}\of{\mathcal{A}}$ by $
+f\of{\PP'} = \left\{ \PP \in \mathcal{A} : \Po{R_{\PP'}} = 1\right\}$.
+If $\PP \in f\of{\PP}$
+then $\PP$ is reflectively consistent and we are done.
+
+Each $f\of{\PP}$ is convex and non-empty
+by the same argument that $\mathcal{A}$ itself is.
+We will show that $f$ has a closed graph;
+we can then apply the Kakutani fixed point theorem
+to find some $\PP \in f\left(\PP\right)$, as desired.
+(The Kakutani fixed-point theorem applies to $[0, 1]^{L'}$ because
+it is a convex subset of a Hausdorff and locally convex topological vector space.)
+
+Let $\left\{\PP_i\right\}_i, \left\{\PP'_i\right\}_i$ be sequences in $\mathcal{A}$
+such that $\PP_i \in f\of{\PP'_i}$ for each $i$.
+We need to show that if $\PP_i \rightarrow \PP$ and $\PP'_i \rightarrow \PP'$
+(in the product topology) then $\PP \in f\of{\PP'}$.
+Since $\mathcal{A}$ is closed, we have $\PP \in \mathcal{A}$.
+So it remains to show that $\PP\of{R_{\PP'}} = 1$.
+Pick any $a, b, \vp$ such that $a < \PP'\of{\vp} < b$.
+Since $\PP'_i$ converges to $\PP'$, for all sufficiently large $i$
+we have $a < \PP'_i < b$, and thus $\PP_i\of{a < \Pq{\vp} < b} = 1$.
+Since $\PP_i$ converges to $\PP$, we have $\Po{a < \Pq{\vp} < b} = 1$.
+Thus $\Po{R_{\PP'}} = 1$
+We conclude that $f$ has a closed graph,
+so we can apply the Kakutani fixed point theorem to find $\PP \in f\of{\PP}$, as desired.
+
+\end{proof}
+
+\subsection{Going meta}
+
+An important point is that the reflection principle is a \emph{statement which is true about $\PP$},
+not an axiom to which $\PP$ assigns probability 1.
+That is, each statement of the form $\left(a < \Po{\vp} < b\right) \implies \Po{a < \Pq{\vp} < b} = 1$
+is true.
+This is what we need in order for the reflection principle to meaningfully constrain
+the values of $\PP$---we don't want $\PP$ to assert that $\PP$ is reflectively consistent,
+we want it to actually \emph{be} reflectively consistent.
+
+That said, we might also want $\PP$ to assign probability 1 to its own reflective consistency.
+To this end, note that any reflectively consistent $\PP$ also satisfies
+\begin{equation}\label{meta-reflection}
+\forall \epsilon > 0 \; \forall \vp \in L' \; \forall a, b \in \mathbb{Q} \st \Po{\of{a \leq \Pq{\vp} \leq b} \implies \Pq{a < \Pq{\vp} < b} > 1 - \epsilon} = 1. 
+\end{equation}
+Indeed, for each $a, b, \epsilon, \vp$, 
+if the antecedent of~\ref{meta-reflection} is false we assign it probability 0,
+and if the consequent is true we assign it probability 1.
+Once again, we can't get \emph{exactly} what we want,
+but we can get it up to some arbitrarily small error.
+The most unsatisfying thing about property~\ref{meta-reflection} is not this infinitesimal error:
+it is that $\PP$ appears \emph{inside} the quantifiers.
+
+We would really like $\PP$ to assert its own reflective consistency \emph{in general},
+not just in each specific case.
+That is, we would like:
+\[ \Po{\forall \vp \in L' \; \forall a, b \in \mathbb{Q}: \of{a < \Pq{\vp} < b} \implies \Pq{a < \Pq{\vp} < b} = 1} = 1, \]
+but we do \emph{not} prove that $\PP$ has this property.
+Indeed, if $\PP$ assigns probability 1 to property~\ref{reflection},
+then we have observed that $\PP$ must also assign probability 1
+to property~\ref{reflection-converse}.
+But 
+then we have
+\begin{align*}
+\Po{a \leq \Pq{\vp} \leq b} > 0 
+&\implies \Po{\Pq{a \leq \Pq{\vp} \leq b} > 0} = 1 \\
+&\implies \Po{a \leq \Pq{\vp} \leq b} = 1
+\end{align*}
+which leads to a contradiction.
+In fact, a similar argument shows that $\PP$ must assign \emph{probability 0}
+both to property~\ref{reflection} and property ~\ref{reflection-converse}.
+
+In order to devise a reflection principle which is simultaneously \emph{satisfied by $\PP$}
+and \emph{assigned probability $1$ by $\PP$},
+we need to weaken property~\ref{reflection}.
+One alternative reflection principle
+is an approximate verison of 
+the intuitively appealing identity $\Pc{\vp}{\Pq{\vp} = p} = p$,
+which formalizes the notion of ``self-trust'' rather than ``self-knowledge.''
+For example, we could consider the relaxation
+\begin{gather*}
+\forall \vp \in L' \; \forall a, b \in \mathbb{Q} \st \Po{\vp \wedge \of{a < \Pq{\vp} < b}} \leq b \Po{a \leq \Pq{\vp} \leq b} \\
+\forall \vp \in L' \; \forall a, b \in \mathbb{Q} \st \Po{\vp \wedge \of{a \leq \Pq{\vp} \leq b}} \geq a \Po{a < \Pq{\vp} < b}
+\end{gather*}
+This is strictly weaker than our proposed reflection principle,
+so our result implies that there exist coherent $\PP$ satisfying this principle.
+Moreover, no obvious analog of the Liar's paradox prevents this property
+from being both satisfied by $\PP$ and assigned probability 1 by $\PP$.
+(This property may be viewed as an approximate, asynchronous version of van Frassen's Reflection Principle.
+The exact version of van Frassen's principle is easily seen to be subject to the liar's paradox.)
+
+It remains open whether it is possible to devise a principle
+which captures the important aspects of reflective consistency,
+and which can be simultaneously true of a distribution $\PP$
+and assigned probability 1 by $\PP$.
+However, our work shows that the obstructions
+presented by the liar's paradox
+can be overcome by tolerating an infinitesimal error,
+and that Tarski's result on the undefinability of truth
+is in some sense an artifact of the infinite precision 
+demanded by reasoning about complete certainty.
+
+\end{document}
