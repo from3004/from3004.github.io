@@ -9,7 +9,8 @@ Next you can update your site name, avatar and other options using the _config.y
 
 $ x^2 $
 
-//( x^2 //)
+
+/( x^2 /)
 
 $$ x^2 $$
 
