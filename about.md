@@ -4,12 +4,10 @@ title: About
 permalink: /about/
 ---
 
-Some information about you!
-
-### More Information
-
-A place to include any other types of information that you'd like to include about yourself.
+Kaya Stechly
+Currently an intern at the [Machine Intelligence Research Institute](intelligence.org).
 
 ### Contact me
 
-[email@domain.com](mailto:email@domain.com)
+[rot13'd:](http://www.rot13.com/)
+xnlnfgrpuyl@tznvy.pbz
