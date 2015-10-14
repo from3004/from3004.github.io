@@ -8,7 +8,7 @@ This result has to do with how a reflective measure over some theory has assigns
 
 Now, while writing this result up on IAFF, I have run into a number of confusions surrounding measures. This post is my attempt to resolve these.
 
-**
+***
 
 I don't like the few ways of introducing the concept that I have seen, so I am going to start by discussing some geometric intuitions.
 
@@ -17,7 +17,6 @@ Usually, we think of these as well defined quantities.
 The goal of defining measures is to capture the abstract and general properties of these intuitions.
 
 So, what do length, area, volume, and mass have in common?
-{% TODO change to more salient or different set of things? %}
 
 * One can add lengths of disjoint segments to get the total length of all those segments together.
 * The length of an empty segment is zero.
@@ -44,6 +43,6 @@ These are exactly the similarities we noticed above, except put in symbols.
 
 It seems like this should be sufficient, but I claim this fails in some cases we care about and that what looks like the obvious fix leads to more problems.
 
-**
+***
 
 
