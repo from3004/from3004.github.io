@@ -61,4 +61,12 @@ An example is the Banach-Tarski paradox, which shows that decomposing a ball int
 The problem here is that what we defined as measure does not match our intuitions about lengths and areas under certain transformations.
 ]
 
-[TODO. Write about how to 
+[TODO. Write about the possible solutions to this problem and how this relates to foundations of mathematics.]
+
+The standard solution to this problem is to define measures as functions from a subset of the powerset instead of being defined on the whole thing.
+
+[TODO. Write about Lebesgue measure and comparison to other measures. Give a bunch of examples. Use as lead-in to generalizing from $\mathbb{R}$.]
+
+[TODO. Write about connections to probability.]
+
+[TODO. Summarize final, general, accurate definition of measure.]
