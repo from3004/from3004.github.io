@@ -45,4 +45,20 @@ It seems like this should be sufficient, but I claim this fails in some cases we
 
 ***
 
+[TODO. I note that I am still confused about this next bit, as I cannot reconstruct the reasoning nor point to places where integration fails nor even articulate what sort of failures occur:
+When calculating areas of less regular shapes, the tool of choice is integration. However, the "measure" we defined above does not have nice properties in general when integrated over.]
+It turns out we can patch this fairly easily by adding another condition:
 
+4. $\mu(\bigcup_i A_i)=\sum_{i}\mu(A_i)$ where all $A_i$s are disjoint.
+
+We call this countable additivity and note that it subsumes condition 3 in the case of a union of just 2 disjoint sets.
+
+Yet, this has an even more interesting failure mode.
+
+[TODO. I also don't actually understand how this works: 
+It turns out that if we just defini our measur over the power set of qhatever set we are interersted in, things break.
+An example is the Banach-Tarski paradox, which shows that decomposing a ball into a finite number of sets of points and recombining them can yield a larger ball.
+The problem here is that what we defined as measure does not match our intuitions about lengths and areas under certain transformations.
+]
+
+[TODO. Write about how to 
