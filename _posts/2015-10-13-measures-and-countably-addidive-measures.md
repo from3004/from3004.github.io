@@ -51,7 +51,8 @@ It seems like this should be sufficient, but I claim this fails in some cases we
 When calculating areas of less regular shapes, the tool of choice is integration. However, the "measure" we defined above does not have nice properties in general when integrated over.]
 It turns out we can patch this fairly easily by adding another condition:
 
-4. $\mu(\bigcup_i A_i)=\sum_{i}\mu(A_i)$ where all $A_i$s are disjoint.
+4. $\mu(\bigcup_i A_i)=\sum_{i}\mu(A_i)$
+where all $A_i$s are disjoint.
 
 We call this countable additivity and note that it subsumes condition 3 in the case of a union of just 2 disjoint sets.
 
