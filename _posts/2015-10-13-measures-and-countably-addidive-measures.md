@@ -10,11 +10,13 @@ Now, while writing this result up on IAFF, I have run into a number of confusion
 
 ***
 
-I don't like the few ways of introducing the concept that I have seen, so I am going to start by discussing some geometric intuitions.
+I don't like the few ways of introducing measures that I have seen, so I am going to start by discussing some geometric intuitions.
 
 Lines seem to have length; shapes seem to have area. Solids have volume. Objects have mass.
 Usually, we think of these as well defined quantities.
 The goal of defining measures is to capture the abstract and general properties of these intuitions.
+
+[TODO. Explain connection to the word measure, why we want to define measures, what properties we want to capture.]
 
 So, what do length, area, volume, and mass have in common?
 
