@@ -18,9 +18,9 @@ Kakutani's fixed point theorem states that, given conditions (1) through (7) bel
 (1) $\\mathcal{A}$ is nonempty.
 
 Because $T$ is consistent we can exhibit elements in $\\mathcal{A}$.
-Let $T\*$ be a completion of $T$.
-Every sentence is either true or false in $T\*$.
-Let $\\mathbb{P}(\\varphi) = 1$ for all $\\varphi$ in $T\*$ and $\\mathbb{P}(\\varphi) = 0$ otherwise.
+Let $T^\*$ be a completion of $T$.
+Every sentence is either true or false in $T^\*$.
+Let $\\mathbb{P}(\\varphi) = 1$ for all $\\varphi$ in $T^\*$ and $\\mathbb{P}(\\varphi) = 0$ otherwise.
 It is easy to see that $x$ is Gaifman coherent and thus an element of $\\mathcal{A}$.
 Thus we have shown that $\\mathcal{A}$ is non-empty. Specifically, there is an element for each completion of $T$. However, note that there may be other elements that don't correspond to completions of $T$
 
